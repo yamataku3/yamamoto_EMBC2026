@@ -1,0 +1,968 @@
+\documentclass[lettersize,journal]{IEEEtran}
+\usepackage[dvipdfmx]{graphicx}
+% \usepackage{graphicx} % Kanogaさん用
+\usepackage{amsmath,amsfonts}
+\usepackage{algorithmic}
+\usepackage{array}
+\usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+\usepackage{textcomp}
+\usepackage{stfloats}
+\usepackage{url}
+\usepackage{verbatim}
+
+
+\hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\usepackage{balance}
+\usepackage{booktabs}
+\usepackage{amssymb}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{color}
+\usepackage{textcomp}
+
+\begin{document}
+\title{Blurry Class Incremental Learning for IMU-Based Human Activity Recognition: An Empirical Study}
+\author{Takumi Yamamoto, Suguru Kanoga, Mitsunori Tada, and Yuta Sugiura
+\thanks{{*This work was partially supported by JSPS KAKENHI Grant-in-Aid for Scientific Research~(B) Grant Number JP23H03445, and Programs for Bridging the gap between R\&{D} and the IDeal society (society $5.0$) and Generating Economic and social value (BRIDGE)/Practical Global Research in the AI $\times$ Robotics Services, implemented by the Cabinet Office, Government of Japan.}}
+\thanks{Takumi Yamamoto, Suguru Kanoga, and Mitsunori Tada are with the Artificial Intelligence Research Center, National Institute of Advanced Industrial Science and Technology (AIST), Tokyo, Japan}
+\thanks{Takumi Yamamoto and Yuta Sugiura are with Department of Information and Computer Science, Faculty of Science and Technology, Keio University, Kanagawa, Japan (Corresponding author: Takumi Yamamoto, email: imuka06x17@keio.jp)}
+}
+
+\markboth{Journal of \LaTeX\ Class Files,~Vol.~18, No.~9, September~2020}%
+{How to Use the IEEEtran \LaTeX \ Templates}
+
+\maketitle
+
+\begin{abstract}
+    
+As inertial motor unit (IMU)-based human activity recognition (HAR) have attracted particular attention, the demand for long-term use of the system is increasing.
+In long-term usage scenarios, user needs may evolve, potentially requiring the model to recognize additional classes.
+Class Incremental Learning (CIL) provides a promising solution by enabling models to learn additional classes without retraining from scratch.  
+While prior work has explored Class-Incremental Learning (CIL) in HAR, it has not considered scenarios in which both classes and domains change simultaneously—namely, the Cross-domain Class Incremental Learning (CD-CIL) scenario. 
+In such settings, the simultaneous variation of both classes and domains presents a significantly more challenging problem for continual learning models.
+To address this, we propose a continual learning scenario called Cross-Domain Blurry Class-Incremental Learning (CD-B-CIL), which allows both domain shift and partial class overlap across tasks.  
+To evaluate this setting, we conduct extensive experiments on two public IMU datasets (UCI-HAR and USC-HAD), comparing nine continual learning methods across multiple overlap configurations.  
+Our results show that replay-based methods outperform regularization-based approaches under the CD-B-CIL setting.  
+Furthermore, we find that increasing the number of overlapping classes can improve performance, although task order and class selection significantly affect outcomes.  
+
+
+\end{abstract}
+
+\begin{IEEEkeywords}
+human activity recognition, continulal learning
+\end{IEEEkeywords}
+
+
+\section{Introduction}
+\label{sec:introduction}
+\textcolor{red}{
+ \IEEEPARstart{H}{uman} activity recognition (HAR) aims to classify daily human activities based on sensor data and has gained attention in recent years~\cite{lara2012survey, attal2015physical, kulsoom2022review}.
+Among various sensing modalities, inertial measurement unit (IMU)-based HAR has been widely adopted for applications such as smart homes~\cite{du2019novel}, healthcare~\cite{schrader2020advanced}, input interfaces~\cite{hsiao2017design}, sports training~\cite{haladjian2020sensor}, and fall detection~\cite{hassan2019smartphone}.
+As these applications are increasingly used over extended periods~\cite{hiremath2023lifespan}, HAR systems must adapt to new user behaviors and evolving activity classes~\cite{hiremath2022bootstrapping}.
+A naive retraining approach using all available data is often infeasible due to resource constraints and privacy concerns~\cite{han2021deep}.
+Consequently, there is growing interest in continual learning (CL) methods that allow updating models using only data from newly introduced classes.
+}
+
+\textcolor{red}{CL approaches--typically categorized into regularization, replay, and parameter isolation--enable models to learn incrementally without forgetting previous tasks~\cite{de2021continual, chen2018lifelong}.
+However, when using plasticity-focused methods like fine-tuning, the model often suffers from catastrophic forgetting~\cite{french1999catastrophic, mccloskey1989catastrophic, tian2024survey}, where performance on prior tasks deteriorates due to overfitting to new data.
+In CL, tasks arrive sequentially and differ by class, domain, or both. This has led to the definition of several problem scenarios.}
+
+\textcolor{red}{In class incremental learning (CIL), the model must learn an increasing number of classes over time, without task labels and with no class repetition across tasks (Fig.~\ref{fig:fig1}(A)).
+Blurry class incremental learning (B-CIL) relaxes the constraint of disjoint classes across tasks, allowing class overlap and yielding improved stability (Fig.~\ref{fig:fig1}(B)).
+Domain incremental learning (DIL) instead keeps the class set fixed but introduces domain shifts (e.g., different users or environments) between tasks (Fig.~\ref{fig:fig1}(C)).
+Combining CIL and DIL, cross-domain class incremental learning (CD-CIL) reflects realistic HAR situations where both class and domain shift simultaneously (Fig.~\ref{fig:fig1}(D)).
+We extend this further and propose a new scenario: cross-domain blurry class incremental learning (CD-B-CIL), which allows class overlap across tasks under domain shifts (Fig.~\ref{fig:fig1}(E)).
+This scenario better mirrors real-world IMU-based HAR applications, where new activities often emerge in new users, leading to simultaneous changes in class and domain distributions.}
+%
+\begin{figure*}[t]
+    \includegraphics[width=\linewidth]{images/teaser_wide.eps}
+    \caption{\textcolor{red}{Overview of continual learning scenarios, highlighting differences in class availability and domain shifts across tasks: (A)~CIL, (B)~B-CIL, (C)~DIL, (D)~CD-CIL, and (E)~CD-B-CIL.}}
+    \label{fig:fig1}
+\end{figure*}
+
+\textcolor{red}{While CIL has been actively studied in HAR~\cite{leite2022resource,kann2023evaluation,kwon2021exploring,qiao2024class,adaimi2022lifelong,schiemer2023online,fan2024ts,wu2025ptms} (see Table~\ref{tab:comparison}), most prior work assumes a fixed user base and non-overlapping classes.
+In contrast, real-world systems must often adapt to new users and overlapping activity definitions.
+We hypothesize that allowing partial class overlap across domains can serve as semantic anchors, mitigating the adverse effects of domain shift in CD-CIL.
+To our knowledge, this work is the first to explore CD-B-CIL in IMU-based HAR.
+We aim to answer the following three research questions:
+\begin{itemize}
+    \item \textbf{RQ1:} Which continual learning method achieves the best performance under the CD-B-CIL scenario in IMU-based HAR?  
+    \item \textbf{RQ2:} Does the CD-B-CIL scenario offer improved performance over the standard CD-CIL scenario?  
+    \item \textbf{RQ3:} How does increasing the number of overlapping classes between tasks influence recognition accuracy?
+\end{itemize}}
+
+%
+\begin{table*}[t]
+    \centering
+    \caption{\textcolor{red}{Comparison of CL scenarios in IMU-based HAR.}}
+    \begin{tabular}{cccc|cc}
+        \toprule
+        & \textbf{CIL} & \textbf{B-CIL} & \textbf{DIL}  & \textbf{CD-CIL} & \textbf{CD-B-CIL} \\
+        \midrule
+        % ~\cite{yin2023continual, jha2021continual} & \checkmark &  &  &  &  & \\
+        \cite{kwon2021exploring, qiao2024class, adaimi2022lifelong, schiemer2023online, fan2024ts, wu2025ptms} & \checkmark &  &  &  &  \\
+        \cite{zhang2021harmi} & \checkmark  & \checkmark &  &  &  \\
+        \cite{matteoni2022continual,kann2024cross} & & & \checkmark &  &  \\
+        \cite{leite2022resource, kann2023evaluation}  & \checkmark & & \checkmark & & \\
+        \midrule
+        % ~\cite{kanoga2025ContinualLearning}&  &  & & \checkmark \\
+        \textbf{Our Study}& & & \checkmark & \checkmark & \checkmark \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:comparison}
+\end{table*}
+%
+
+\textcolor{red}{We evaluate nine cl methods on two public datasets--the University of California Human Activity Recognition (UCI-HAR) dataset and the University of Southern California Human Activity Dataset (USC-HAD)--under CD-B-CIL scenarios with varying degrees of class overlap.
+Our results show that replay-based methods outperform regularization-based ones, and that increasing class overlap improves performance.
+However, task order and class selection significantly influence results, occasionally degrading accuracy despite overlap.
+These findings underscore the need for further investigation into task composition strategies in CD-B-CIL.}
+
+\textcolor{red}{Main contributions of this work are::
+\begin{itemize}
+    \item We define and formalize a novel cl 	scenario: CD-B-CIL, capturing simultaneous class/domain shifts and class overlap.
+    \item We conduct the first empirical evaluation of this scenario in IMU-based HAR using two public datasets and nine CL methods.
+    \item We demonstrate that class overlap improves robustness to domain shift and highlight the importance of task order and class selection.
+\end{itemize}
+}
+
+
+\section{Problem Definitions and Scenarios}
+\textcolor{red}{In a CL scenario, tasks are assumed to arrive sequentially, and the model $f(\boldsymbol{x}; \theta)$ is incrementally updated upon the arrival of each new task, where $\boldsymbol{x}$ denotes the input data and $\theta$ represents the model parameters.
+Formally, the sequence of tasks is defined as $T = \{\tau^{1}, \tau^{2}, ..., \tau^{N}\}$, where each task $\tau^t$ ($t \in \{1, ..., N\}$) is associated with a dataset $D^{t} = \{(x_{i}^{t}, y_{i}^{t}) |y_{i}^{t} \in Y^{t}\}_{i=1}^{N_{t}}$ and a corresponding label space $Y^{t}$.
+Each input $x_i^t$ is sampled from a task-specific input domain $\mathcal{X}^t$, and each label $y_i^t$ belongs to the respective label space $Y^t$.
+We denote the model before training on task $\tau^{t}$ as $f_{\theta_{t}}$, and the model after optimization as $f_{\theta_{t}^{*}}$.}
+
+\textcolor{red}{The formal definitions of the continual learning scenarios considered in this study are as follows:
+\begin{itemize}
+    \item CIL:
+    Each task introduces a set of new, mutually exclusive classes. Formally, for any $i \neq j$, the label spaces are disjoint, i.e., $Y^{i} \cap Y^{j} = \varnothing$, indicating that no class is shared between tasks.
+    \item B-CIL:
+    This relaxes the strict disjoint class assumption of CIL by allowing partial overlap between the label spaces of tasks. Specifically, for some $i \neq j$, it holds that $Y^{i} \cap Y^{j} \neq \varnothing$.
+    \item DIL:
+    DIL assumes a fixed label space across all tasks while allowing the input distribution to vary over time.
+    Formally, \( Y^{t} = Y \) for all \( t \in \{1, \ldots, N\} \), meaning all tasks share the same set of classes.
+    However, the input data distributions differ between tasks, i.e., \( P(X^{i}) \neq P(X^{j}) \) for \( i \neq j \).
+    \item CD-CIL: 
+    This represents a more challenging scenario in which both the class distribution and the input distribution change across tasks.
+    Formally, for all \( i \neq j \), the label spaces are disjoint \( (Y^{i} \cap Y^{j} = \varnothing) \), and the input distributions are different \( (P(X^{i}) \neq P(X^{j})) \).
+    \item CD-B-CIL:
+    This combines the characteristics of both B-CIL and CD-CIL.
+    Tasks may share some classes \( (Y^{i} \cap Y^{j} \neq \varnothing \) for some \( i \neq j) \), while the input distributions vary across tasks \( (P(X^{i}) \neq P(X^{j})) \).
+\end{itemize}
+}
+
+
+\section{Methods}
+\subsection{Backbone Model}
+\textcolor{red}{As the backbone model, we employed one-dimensional convolutional neural network (1D CNN) architecture commonly used in prior class incremental learning studies~\cite{qiao2024class}.
+Specifically, we adopted the same architecture proposed in~\cite{qiao2024class}, which comprises four convolutional blocks.
+Each block consists of a convolutional layer (kernel size: 5, stride: 1, padding: 2) with output channels of 64, 128, 256, and 128, respectively, followed by a ReLU activation function, a batch normalization (BN) layer, and a MaxPooling layer (kernel size: 2, stride: 2).}
+
+\subsection{Baselines}
+\textcolor{red}{As baselines, we considered two approaches. The first is the naïve fine-tuning strategy, where the model is incrementally updated on each new task without employing any CL methods, thereby serving as a reference for catastrophic forgetting.
+The second is the offline setting, where the model is trained using data from all tasks simultaneously.
+This serves as an upper-bound performance reference, as it assumes access to the entire dataset across tasks.}
+
+\subsection{Continual Learning Methods}
+\subsubsection{Regularization-based methods}
+\textcolor{red}{We selected four representative regularization-based CL methods for comparison: Learning without Forgetting (LwF)~\cite{li2017learning}, Elastic Weight Consolidation (EWC)~\cite{kirkpatrick2017overcoming}, Memory Aware Synapses (MAS)~\cite{aljundi2018memory}, and Synaptic Intelligence (SI)~\cite{zenke2017continual}.
+These methods mitigate catastrophic forgetting by incorporating additional loss terms that constrain updates to important model parameters based on knowledge acquired from previous tasks.}
+
+\textcolor{red}{LwF~\cite{li2017learning} mitigates catastrophic forgetting by leveraging a knowledge distillation (KD) loss as a regularization term. 
+Specifically, LwF encourages the current model $f_{\boldsymbol{\theta}}$ to retain knowledge from previous tasks by minimizing the discrepancy between its output and that of a frozen model $f_{\boldsymbol{\theta}^*}$--trained on earlier tasks--when evaluated on the current task data.
+This is achieved in conjunction with minimizing the standard cross-entropy (CE) loss $\mathcal{L}_{\text{CE}}$ for the current task labels.
+In this study, we adopt the adaptive-weight variant of LwF, where the contribution of the CE and KD losses varies depending on the number of tasks seen so far.
+The total loss function for task $\tau^t$ is defined as:}
+\textcolor{blue}{
+\begin{eqnarray}
+    \mathcal{L} &=& \frac{1}{t} \cdot \mathcal{L}_{\text{CE}} + \left(1 - \frac{1}{t} \right) \cdot \lambda \cdot \mathcal{L}_{\text{KD}^{t}}  \\
+    \mathcal{L}_{\mathrm{KD}}^{t} &=& - \sum_{c \in Y^{1:t-1}} \tilde{y}^{t-1}_{c} \log \tilde{y}^{t}_{c} \\
+    \tilde{y}^{t-1}_{i} &=& \mathrm{Softmax}(f_{\theta_{t-1}^{*}}(x_{i}^{t}) / T), \nonumber \\
+    \tilde{y}^{t}_{i} &=& \mathrm{Softmax}(f_{\theta_{t}}(x_{i}^{t}) / T) 
+\end{eqnarray}
+where $T$ is the temperature parameter used for smoothing the output distributions, and is set to 2 following~\cite{mai2022online}.}
+
+\textcolor{red}{EWC~\cite{kirkpatrick2017overcoming} addresses catastrophic forgetting by selectively constraining updates to parameters deemed important for previously learned tasks.
+The importance of each parameter is quantified using the diagonal elements of the Fisher Information Matrix (FIM), which captures the sensitivity of the loss with respect to each parameter.
+The total loss function for task $\tau^{t}$ is defined as:
+%
+\begin{equation}
+ \mathcal{L} = \mathcal{L}_{\mathrm{CE}} + \frac{\lambda}{2} \sum_{c \in Y^{1:t}} F_c (\boldsymbol{\theta}_{t, c} - \boldsymbol{\theta}_{t-1, c}^{*})^2,
+\end{equation}
+%
+where $F_c$ represents the importance score of parameter $\theta_c$ computed from previous tasks, $\boldsymbol{\theta}_{t}$ is the current model parameter vector, and $\boldsymbol{\theta}_{t-1}^{*}$ is the optimized parameter vector from the previous task.
+The regularization term penalizes deviations from the previously important parameters, thereby preserving prior knowledge.}
+
+\textcolor{red}{MAS~\cite{aljundi2018memory} is a regularization-based approach inspired by neuroplasticity, which quantifies the importance of each parameter based on its contribution to the model's output.
+Unlike EWC, which relies on the FIM, MAS estimates importance by computing the magnitude of the gradients of the model outputs with respect to the parameters.
+The total loss function for task $\tau^t$ is given by:
+\begin{eqnarray}
+    \mathcal{L} &=& \mathcal{L}_{\mathrm{CE}} + {\lambda} \sum_{c \in Y^{1:t}} \Omega_c (\boldsymbol{\theta}_{t, c} - \boldsymbol{\theta}_{t-1, c}^{*})^2,\\
+    \Omega_c  &=& \frac{1}{N} \sum_{i=1}^{N} || \frac{\partial (f (x_i; \theta))}{\partial \theta_c}||,
+\end{eqnarray}
+where $\Omega_c$ denotes the estimated importance of parameter $\theta_c$ and is computed as the average norm of the gradients over $N$ samples.
+This regularization discourages large updates to parameters that significantly influence the model's predictions, thereby preserving knowledge acquired from previous tasks.}
+
+\textcolor{red}{SI~\cite{zenke2017continual} addresses catastrophic forgetting by penalizing changes to parameters that were important for solving previous tasks.
+Similar to MAS, SI estimates the importance of each parameter based on its historical contribution to reducing the loss. Unlike methods that rely on second-order information, SI computes importance online during training by tracking the product of the gradient and the parameter update.
+The loss function for task $\tau^t$ is defined as:
+%
+\begin{eqnarray}
+    \mathcal{L} &=& \mathcal{L}_{\mathrm{CE}} + {\lambda} \sum_{c \in Y^{1:t}} \omega_c (\boldsymbol{\theta}_{t, c} - \boldsymbol{\theta}_{t-1, c}^{*})^2,
+\end{eqnarray}
+%
+where $\omega_c$ represents the estimated importance of parameter $\theta_c$ and is computed as:}
+\textcolor{blue}{
+%
+\begin{eqnarray}
+    \omega_c = \sum_{t} \frac{g_c^{(t)} \cdot \Delta \theta_c^{(t)}}{(\Delta \theta_c^{(t)})^2 + \epsilon},
+\end{eqnarray}
+%
+with $g_c^{(t)}$ denoting the gradient of the loss with respect to parameter $\theta_c$ at training step $t$, $\Delta \theta_c^{(t)}$ the corresponding parameter update, and $\epsilon$ a small constant added for numerical stability.
+This approach allows SI to adaptively preserve important knowledge while enabling learning on new tasks.}
+
+% LwF: We performed a grid search over three values of the hyperparameter λ: 0, 0.1, 0.01, 0.001, and 0.0001.
+% EWC: We performed a grid search over three values of the hyperparameter λ: 0.01, 0.001, and 0.0001.
+% MAS: We conducted a grid search using three different values for the hyperparameter λ: 0.001, 0.0001, and 0.00001.
+% SI: A grid search was carried out on three candidate values of the hyperparameter λ: 0.01, 0.001, and 0.0001.
+ 
+\subsubsection{Replay-based methods}
+\textcolor{red}{We selected five representative replay-based methods for comparison: Experienced Replay (ER)~\cite{rolnick2019experience}, Dark Experience Replay (DER)~\cite{lopez2017gradient}, Fast Incremental Classifier and Representation Learning (FastICARL)~\cite{kwon2021fasticarl}, Adversarial Shapley value Experience Replay (ASER)~\cite{shim2021online}, and Generative Replay (GR)~\cite{shin2017continual}.}
+
+\textcolor{red}{ER~\cite{rolnick2019experience} is a fundamental replay-based method in which a fixed-size memory buffer is used to store samples from previous tasks.
+During training on a new task, the model is updated using a combination of current task data and replayed samples drawn from the memory buffer.
+In our implementation, we adopted random sampling strategies for both memory retrieval and memory update, consistent with the original ER framework.
+The overall loss function used in task $\tau^t$ is defined as:
+%
+\begin{eqnarray}
+    \mathcal{L} 
+    = \mathcal{L}_{\mathrm{CE}} 
+    + \mathcal{L}_{\mathrm{Buffer}},
+\end{eqnarray}
+%
+where $\mathcal{L}_{\mathrm{Buffer}}$ denotes the cross-entropy loss computed on the replayed samples from the memory buffer.}
+
+\textcolor{red}{DER~\cite{lopez2017gradient} extends the standard ER framework by incorporating a KD loss.
+Like ER, DER employs random sampling strategies for both memory retrieval and update.
+In addition to the CE loss on buffered samples, DER introduces a distillation loss that encourages the current model to mimic the output of the previous model on the same buffered inputs.
+The overall loss function is defined as:
+%
+\begin{eqnarray}
+    \mathcal{L} = 
+    \mathcal{L}_{\mathrm{CE}}
+    + \frac{1}{2} \cdot \mathcal{L}_{\mathrm{Buffer}}
+    + \frac{1}{2} \cdot \mathcal{L}_{\mathrm{Buffer_{KD}}},
+\end{eqnarray}
+%
+where $\mathcal{L}_{\mathrm{Buffer}}$ denotes the CE loss on memory samples, and $\mathcal{L}_{\mathrm{Buffer_{KD}}}$ represents the KD loss computed with respect to the soft targets (i.e., logits or softmax outputs) stored in the buffer.}
+
+\textcolor{red}{FastICARL~\cite{kwon2021fasticarl} is a computationally efficient variant of the original iCaRL method~\cite{rebuffi2017icarl}, a class-incremental learning approach that integrates exemplar memory with a nearest-mean-of-exemplars classifier.
+FastICARL addresses the high computational cost of iCaRL by replacing its $k$-nearest neighbor ($k$-NN)–based exemplar selection with a more efficient max-heap–based strategy.
+The model is trained by minimizing the standard CE loss over the combined set of current task data and stored exemplars, along with a KD loss:
+%
+\begin{equation}
+    \mathcal{L} = \mathcal{L}_{\mathrm{CE}} + \lambda \cdot \mathcal{L}_{\mathrm{Buffer_{KD}}}.
+\end{equation}
+}
+
+\textcolor{red}{ASER~\cite{shim2021online} is a replay-based CL method that prioritizes samples in the memory buffer based on their Shapley values.
+This approach aims to identify and replay samples that are not only representative of previous classes but also likely to interfere with the learning of new incoming data.
+ASER achieves this by computing adversarial Shapley values (ASV), which quantify the trade-off between cooperative and adversarial contributions of each sample to model performance under distributional shifts or adversarial scenarios.
+%
+\begin{equation}
+    \text{ASV}(i) = \frac{1}{|S_{\text{sub}}|} \sum_{j \in S_{\text{sub}}} s_j(i) 
+    - \frac{1}{|B|} \sum_{k \in B} s_k(i),
+\end{equation}
+%
+where $S_{\text{sub}}$ denotes a class-balanced subset of the replay buffer, $B$ represents the current memory buffer, and $s_j(i)$ is the Shapley value of sample $i$ with respect to sample $j$.
+The first term captures the cooperative contribution of sample $i$ to the subset $S_{\text{sub}}$, while the second term measures its interference with the current batch $B$.
+Due to the computational complexity of exact Shapley value estimation, ASV is typically approximated using $k$-nearest neighbors.
+In this study, we follow~\cite{qiao2024class} and set $k=3$.}
+
+\textcolor{red}{GR~\cite{shin2017continual} is a replay-based CL method that synthesizes pseudo-samples resembling previous task data using a generative model.
+These generated samples are then replayed alongside new task data during training to mitigate catastrophic forgetting.
+In GR, a generator $g_\phi $ and a learner $f_\theta$ are trained jointly.
+At each task step, the generator from the previous task generates synthetic samples, while the learner assigns pseudo-labels to these samples.
+The model is then trained on a combination of the generated data and the current task data.
+After updating the learner, the generator is also retrained to reflect the updated knowledge.
+In this study, we adopt TimeVAE~\cite{desai2021timevae} as the generative model, which is well-suited for sequential and time-series data generation.}
+
+
+\section{Materials}
+\subsubsection{UCI-HAR}
+\textcolor{red}{UCI-HAR~\cite{anguita2013public} contains data from 30~subjects, collected using a waist-mounted smartphone (Samsung Galaxy S II) equipped with embedded inertial sensors. 
+The sensor's sampling rate was set to 50~Hz.
+The dataset includes six activities: (1)~walking, (2)~walking upstairs, (3)~walking downstairs, (4)~sitting, (5)~standing, and (6)~lying.
+The data has nine feature dimensions, which consist of 3-axis total acceleration, 3-axis estimated body acceleration, and 3-axis angular velocity.
+Sensor signals were preprocessed using sliding windows of 2.56~s and 50~\% overlap, resulting in window shapes of $128{}\times{}9$.}
+
+\subsubsection{USC-HAD}
+\textcolor{red}{USC-HAD~\cite{zhang2012usc} contains data from 14~subjects, collected using a single IMU sensor (MotionNode) positioned on the front right side of the body.
+The sensor's sampling rate was set to 100~Hz.
+The dataset includes 12~activities: (1)~walking forwards, (2)~walking left, (3)~walking right, (4)~walking upstairs, (5)~walking downstairs, (6)~running forwards, (7)~jumping, (8)~sitting, (9)~standing, (10)~sleeping, (11)~elevator up, and (12)~elevator down.
+The data has six feature dimensions,  which consist of 3-axis acceleration and 3-axis angular velocity.
+Sensor signals were preprocessed using sliding windows of 1.28~s and 50\% overlap, resulting in window shapes of $128{}\times{}6$.}
+
+
+\begin{figure*}[t]
+    \centering
+    % \includegraphics[bb=0 0 300 200]{images/scenarios.jpg}
+    \includegraphics[width=\linewidth]{images/scenarios.eps}
+    \caption{The scenarios of continual learning in the (A) UCI-HAR and (B) USC-HAD dataset}
+    \label{fig:scenarios}
+\end{figure*}
+
+\section{Experiments}
+In this study, we evaluated two CD-B-CIL scenarios, CD-B-CIL1 and CD-B-CIL2, and compared them with the CD-CIL and DIL scenarios.
+Fig \ref{fig:scenarios} shows the detail of scenarios of each two dataset, (A) UCI-HAR and (B) USC-HAD.
+In this study, the number of tasks was set to three. 
+
+\subsection{Division of the participants to each tasks}
+The participants were evenly divided into three groups, with each group (Domain A, Domain B, and Domain C) assigned to a specific task.
+In the UCI-HAR dataset, 10 participants are assigned to each domain, while in the USC-HAD dataset, 4 participants are assigned to each domain. 
+The UCI-HAR dataset consists of data from 14 individuals; however, the data from the last two individuals (ID = 13, 14) was not used.
+The participants were randomly assigned to each task.
+
+\subsection{Number of the classes of each tasks}
+In the CD-CIL scenario, the classes from each dataset are evenly assigned to each task to ensure that there is no overlap of classes across tasks. 
+Consequently, in the UCI-HAR dataset, which has six classes, each task is assigned two classes, while in the USC-HAD dataset, which has twelve classes, each task is assigned four classes.
+In the CD-B-CIL1 scenario, compared to the CD-CIL scenario, one of the classes from the first task (Task 1) is also assigned to other tasks (Task 2 and Task 3). 
+As a result, the number of classes per task is [2, 3, 3] for the UCI-HAR dataset and [4, 5, 5] for the USC-HAD dataset.
+In the CD-B-CIL2 scenario, two classes from the task 1 are assigned to both Tasks 2 and 3. 
+Therefore, the number of classes per task is [2, 4, 4] for the UCI-HAR dataset and [4, 6, 6] for the USC-HAD dataset.
+In the DIL scenario, all classes from each dataset are used in every task. 
+Consequently, six classes are used for the UCI-HAR dataset, and twelve classes are used for the USC-HAD dataset.
+
+\subsection{The order of classes in each task}
+We decided the order of classes in task based on the distance between each tasks. 
+At first, we calucuated the distance between each classes.
+As the baseline class, one of the two classes with the largest distance between them in each dataset was selected. 
+In the UCI-HAR dataset, the distance between class 1 and 5 was the largest, and class 5 was selected as the baseline class. 
+In the USC-HAD dataset, the distance between class 1 and 2 was the largest, and class 2 was selected as the baseline class. 
+Subsequently, we sorted the non-baseline classes in ascending order based on their distance from the baseline class.
+This resulted in the following class orders: [5, 3, 1, 0, 2, 4] for the UCI-HAR dataset and 
+[2, 1, 4, 0, 9, 11, 10, 8, 7, 5, 6, 3] for the USC-HAD dataset.
+In the CD-CIL scenario, the classes were divided into three groups in this order and assigned to the corresponding tasks. 
+In the CD-B-CIL1 scenario, the baseline class was selected as the overlapping class. 
+In the CD-B-CIL2 scenario, both the baseline class and the class closest to it were selected as overlapping classes.
+Table \ref{tab:task_split} shows the classes for each task in the CD-CIL, CD-B-CIL1, CD-B-CIL2 scenairos.
+In the DIL scenario, all classes were assigned to each task.
+Note that the subjects for each task are different in all scenarios. 
+
+\begin{table}[t]
+    \centering
+    \caption{Classes for each task of CD-CIL, CD-B-CIL1, CD-B-CIL2 scenarios in UCI-HAR and USC-HAD dataset}
+
+    \resizebox{0.98\linewidth}{!}{
+    \begin{tabular}{l  l  c c c}
+       \toprule
+       Dataset & Scenarios & Task 1 & Task 2 & Task 3 \\ 
+       \midrule
+       \multirow{3}{*}{UCI-HAR} & CD-CIL       & 5, 3         & 1, 0           & 2, 4 \\
+                                & CD-B-CIL1  & 5, 3         & 5, 1, 0        & 5, 2, 4 \\
+                                & CD-B-CIL2  & 5, 3         & 5, 3, 1, 0     & 5, 3, 2, 4 \\ 
+       \midrule
+       \multirow{3}{*}{USC-HAD} & CD-CIL       & 2, 1, 4, 0   & 9, 11, 10, 8   & 7, 5, 6, 3 \\
+                                & CD-B-CIL1  & 2, 1, 4, 0   & 2, 9, 11, 10, 8 & 2, 7, 5, 6, 3 \\
+                                & CD-B-CIL2  & 2, 1, 4, 0   & 2, 1, 9, 11, 10, 8 & 2, 1, 7, 5, 6, 3 \\
+       \bottomrule
+    \end{tabular}
+    }
+    \label{tab:task_split}
+\end{table}
+
+
+\subsection{Division into Training and Test Dataset}
+The training and test data were split based on participants, as wearable sensor data can vary across individuals due to domain differences.
+In the UCI-HAR dataset, data from two participants were used as test data for each task. Additionally, data from six participants were used for training, and data from two participants were used for validation.
+In the USC-HAD dataset, among the four participants assigned to each task, data from one participant were used as test data. 
+Furthermore, data from two participants were used for training, and data from one participant were used for validation.
+
+\subsection{Evaluation Metrics}
+We used the (1) Final Average Accuracy, (2) Final Average Forgetting, and (3) Average Learning Accuracy as the evaluation metrics.
+Let $a_{i, j}$ denote the average classification accuracy when the model, after being trained on Task $i$, is tested on Task $j \leqq i$. The total number of task is $T$.
+
+(1) Final Average Accuracy is the average accuracy of the model for all tasks when the model has finished learning all tasks.
+\begin{equation}
+    \mathcal{A}_{T} = \frac{1}{T} \sum_{i=1}^{T} a_{T, i}
+\end{equation}
+(2) Final Average Forgetting represents how much accuracy decreases on task $j$ due to learning task $T$:
+\begin{equation}
+    \mathcal{F}_{T} = \frac{1}{T-1} \sum_{j=1}^{T} \max_{k \in \{1, ..., T-1\}} (a_{k, j} - a_{i, j}) (j < i)
+\end{equation}
+(3) Average Learning Accuracy is the average accuracy of the model for the new task when the model has updated in that tasks:
+\begin{equation}
+    \mathcal{A}_{cur} = \frac{1}{T} \sum_{i=1}^{T} a_{i, i}
+\end{equation}
+
+
+\begin{table*}[!ht]
+    \centering
+    \caption{Results of the continual learning methods in the UCI-HAR and USC-HAD datasets}
+    \begin{tabular}{c c c | c c|c c c c|c c c c c}
+        \toprule
+        Metrics & Dataset & Scenario & Naive & Offline & LwF & EWC & MAS & SI  & ER & ASER & DER & FastICARL & GR \\
+        % === A_T ===
+        \midrule
+        \multirow{8}{*}{$\mathcal{A}_T$ } & 
+        \multirow{4}{*}{UCI-HAR} 
+        & CD-CIL & 32.93 & 95.98 & 33.18 & 34.27 & 39.20 & 31.29  & 76.09 & \textbf{83.76} & 46.17 & 76.88 & 33.30 \\
+        & & CD-B-CIL1 & 59.64 & \multirow{3}{*}{N.A.} & 60.72 & 60.22 & 58.43 & 60.18  & 78.23 & \textbf{87.18} & 82.27 & 85.24 & 60.60 \\
+        & & CD-B-CIL2 & 76.14 &  & 78.73 & 73.66 & 75.39 & 77.24 & 87.88 & \textbf{93.80} & 89.35 & 91.81 & 72.33 \\
+        & & DIL & 93.76 &  & 93.25 & 92.23 & 93.76 & 91.99 & \textbf{95.33} & 94.69 & 94.01 & 95.03 & 93.46 \\
+        \cmidrule{2-14}
+        &\multirow{4}{*}{USC-HAD} 
+        & CD-CIL & 26.18 & 57.71 & 29.39 & 28.10 & 31.77 & 29.13  & 36.79 & \textbf{40.1} & 33.06 & 32.95 & 20.31 \\
+        & & CD-B-CIL1 & 39.64 &\multirow{3}{*}{N.A.}  & 33.60 & 40.65 & 41.56 & 39.30  & 45.22 & \textbf{46.66} & 41.49 & 44.86 & 37.18 \\
+        & & CD-B-CIL2 & 49.83 &  & 37.79 & 50.15 & 48.65 & 49.81 & \textbf{54.04} & 52.09 & 49.1 & 51.68 & 37.79 \\
+        & & DIL & 55.76 &  & 47.39 & 50.34 & 55.68 & 51.29 & 59.68 & \textbf{61.53} & 56.56 & 58.51 & 40.46 \\
+
+        \midrule
+        % === F_T ===
+        \multirow{8}{*}{$\mathcal{F}_T$ } & 
+        \multirow{4}{*}{UCI-HAR} 
+        & CD-CIL & 99.55 & \multirow{4}{*}{N.A.} & 97.96 & 97.59 & 72.66 & 85.88 & 22.74 & 19.96 & \textbf{11.74} & 20.09 & 84.78 \\
+        & & CD-B-CIL1 & 57.16 &  & 56.29 & 58.07 & 44.41 & 45.13& 29.71 & \textbf{13.43} & 20.35 & 19.67 & 58.68 \\
+        & & CD-B-CIL2 & 30.47 &  & 28.34 & 34.49 & 24.41 & 13.24 & 9.53 & 4.04 & \textbf{3.02} & 3.86 & 36.76 \\
+        & & DIL & 2.39 &  & 0.46 & 4.49 & 2.39 & 1.66  & 1.40 & 1.00 & \textbf{0.89} & 1.22 & 1.82 \\
+        \cmidrule{2-14}
+        & \multirow{4}{*}{USC-HAD} 
+        & CD-CIL & 25.24 & \multirow{4}{*}{N.A.} & 28.74 & 33.51 & 20.46 & 25.65  & 10.44 & 9.44 & \textbf{7.90} & 13.19 & 15.30 \\
+        & & CD-B-CIL1 & 21.09 & & 13.10 & 20.43 & 13.87 & 22.17  & 8.95 & 7.15 & 6.49 & \textbf{2.54} & 7.30 \\
+        & & CD-B-CIL2 & 12.97 & & 9.97 & 19.96 & 11.4 & 16.57  & \textbf{2.20} & 8.00 & 3.18 & 4.81 & 9.97 \\
+        & & DIL & 0.05 &  & 2.08 & 0.77 & \textbf{0.00} & \textbf{0.00} & \textbf{0.00} & \textbf{0.00} & 0.20 & \textbf{0.00} & 9.49 \\
+
+        \midrule
+        % === A_cur ===
+        \multirow{8}{*}{$\mathcal{A}_{cur}$ } & 
+        \multirow{4}{*}{UCI-HAR} 
+        & CD-CIL & 99.3 & \multirow{4}{*}{N.A.}  & 98.48 & \textbf{99.33} & 87.56 & 88.54 & 74.14 & 97.17 & 47.00 & 82.55 & 89.86 \\
+        & & CD-B-CIL1 & 97.75 &  & 98.25 & \textbf{98.93} & 88.03 & 90.27  & 98.04 & 95.67 & 94.69 & 98.35 & 99.72 \\
+        & & CD-B-CIL2 & 96.27 &  & \textbf{97.63} & 96.65 & 91.66 & 86.07  & 94.23 & 96.49 & 91.09 & 94.38 & 96.75 \\
+        & & DIL & 93.49 &  & 94.32 & 93.49 & 91.66 & \textbf{95.03} & 93.87 & 93.06 & 93.42 & 93.48 & 93.48 \\
+        \cmidrule{2-14}
+        & \multirow{4}{*}{USC-HAD} 
+        & CD-CIL & 43.01 & \multirow{4}{*}{N.A.} & 48.04 & \textbf{50.44} & 44.37 & 46.24 & 43.52 & 43.85 & 37.22 & 40.85 & 30.51 \\
+        & & CD-B-CIL1 & 45.24 &  & 42.13 & 53.78 & 50.16 & \textbf{53.94}  & 45.92 & 6.98 & 44.9 & 44.56 & 39.50 \\
+        & & CD-B-CIL2 & 55.61 &  & 43.21 & \textbf{60.83} & 54.62 & 58.52  & 50.38 & 54.82 & 48.28 & 52.55 & 43.21 \\
+        & & DIL & 46.07 &  & 45.71 & 48.00 & 49.02 & 45.06 & 49.33 & \textbf{53.51} & 49.12 & 51.86 & 44.32 \\
+        \bottomrule
+    \end{tabular}
+    \label{tbl:main_results}
+\end{table*}
+
+
+
+
+\subsection{Learning Protocol}
+For the training parameters, Cross Entropy Loss was used as the loss function, and the OneCycle learning rate scheduling was employed. 
+The model was trained for 100 epochs. Early stopping was applied to all algorithms. The patience parameter was set to 5 for both replay-based and regularization-based methods.
+
+Common to all training methods, the batch size, maximum learning rate, and learning rate adjustment strategy were optimized using grid search. 
+The search range for the batch size was [32, 64, 128], and for the initial learning rate, it was [0.01, 0.001, 0.0001].
+For the learning rate adjustment strategy, three approaches were explored: reducing the learning rate by a factor of 0.1 every 10 epochs, reducing it by a factor of 0.1 every 25 epochs, and using only the scheduler without manual adjustments.
+These hyperparameters were optimized using only the validation data from Task 1. The hyperparameters for each classification algorithm are shown in Table ~\ref{tab:hyperparameter}.
+
+
+\begin{table}[t]
+    \centering
+    \caption{Hyperparameter grid search for the continual learning methods}
+
+    \resizebox{0.95\linewidth}{!}{
+    \begin{tabular}{c  c  c }
+       \toprule
+       Method & parameter & Search \\ 
+       \midrule
+        LwF & $\lambda$ & 1, 0.1, 0.01, 0.001, 0.0001 \\
+        \midrule
+        EWC & $\lambda$ & 0.01, 0.001, 0.0001 \\
+        \midrule
+        MAS & $\lambda$ & 0.001, 0.0001, 0.00001 \\
+        \midrule
+        SI & $\lambda$ & 0.01, 0.001, 0.0001 \\
+        \midrule
+        ASER & Number of sample saved in buffer per class & 2, 4 \\
+        \midrule
+        \multirow{2}{*}{GR} & Learning rate for generator & 0.001, 0.0001\\
+        & Weight for reconstruction loss & 0.01, 0.1, 1, 10 \\
+    %    \midrule
+    %    \multirow{3}{*}{USC-HAD} & CD-CIL       & 2, 1, 4, 0   & 9, 11, 10, 8   & 7, 5, 6, 3 \\
+       \bottomrule
+    \end{tabular}
+    }
+    \label{tab:hyperparameter}
+\end{table}
+
+
+
+In the UCI-HAR dataset, out of the data from eight participants (excluding the test data for Task 1), data from two participants were selected using 4-fold cross-validation. 
+In the USC-HAD dataset, out of the data from three participants (excluding the test data for Task 1), data from one participant were selected using 3-fold cross-validation.
+
+
+
+
+\subsection{Implementation}
+We implemented the methods in Python 3.10.10 and PyTorch 1.13.1. These codes were executed on a machine running Ubuntu 22.04, equipped with a A6000 GPU.
+
+\section{Results}
+
+% Table \ref{tbl:main_results_UCI_HAR} and Table \ref{tbl:main_results_USC_HAD} 
+Table \ref{tbl:main_results} shows the results of the continual learning methods on the UCI-HAR and USC-HAD datasets.
+% \subsection{Final Average Accuracy}
+When comparing the four scenarios in the two datasets, CD-CIL had the lowest final average accuracy, followed by CD-B-CIL1 and CD-B-CIL2, with DIL having the highest.
+In terms of Final Average Forgetting, CD-CIL exhibited the highest level of forgetting. As the number of Overlap classes increased, the amount of forgetting decreased, with DIL showing the lowest forgetting (except for ER and DER in UCI-HAR, and ASER, FastICARL, and GR in USC-HAD).
+These results indicate that increasing the number of Overlap classes helps reduce forgetting and ultimately improves final accuracy.
+Average Current Accuracy varied across algorithms, showing no consistent trend.
+
+We compared the final average accuracy of continual learning algorithms with the baseline method, Naive.
+In the CD-CIL scenario, most continual learning algorithms achieved higher average final accuracy except for SI on UCI-HAR and GR on USC-HAD. 
+In the CD-B-CIL1 scenario, continual learning algorithms outperformed Naive except for MAS on UCI-HAR, and LwF, SI, and GR on USC-HAD. 
+In the CD-B-CIL2 scenario, continual learning algorithms outperformed Naive except for EWC, MAS, and GR on UCI-HAR, and LwF, MAS, SI, DER, and GR on USC-HAD.
+In the DIL scenario, the algorithms that outperformed Naive were ER, ASER, DER, and FastICARL on UCI-HAR, and ER, ASER, and FastICARL on USC-HAD.
+Overall, in scenarios such as CD-CIL and those with task overlap, many CL algorithms tend to outperform the Naive baseline. 
+In contrast, under the DIL scenario, performance is more limited, with only a subset of algorithms achieving better results than Naive.
+
+Among the evaluated continual learning algorithms, ASER achieved the highest final average accuracy in the CD-CIL, CD-B-CIL1, and CD-B-CIL2 scenarios for UCI-HAR, while ER performed best in the DIL scenario. 
+For USC-HAD, ASER achieved thFor USC-HAD, ASER achieved the highest final average accuracy in the CD-CIL, CD-B-CIL1, and DIL scenarios, whereas ER performed best in the CD-B-CIL2 scenario.
+
+\section{Discussion}
+\subsection{Order and Overlap Class Sensitivity Study}
+In the above results, only one class order was tested, as shown in Table \ref{tab:task_split}.
+Performance and trends in accuracy may vary depending on the class order.
+Therefore, we conducted additional experiments using different methods to select the overlap classes and determine the class order.
+
+\subsubsection{Class Order and Overlap Class Selection}
+In the initial results, we selected the baseline class from the class pair with the smallest distance, and then determined the class order based on the distance from the baseline class.
+Specifically, the classes were arranged in ascending order based on their distance from the reference class.
+We refer to this class order as ``Farpair-close (FC).” 
+We tested different class orders using three alternative methods for selecting the initial class and determining the class order.
+
+To assess the impact of this ordering, we reversed the ordering method, arranging the classes in descending order based on their distance from the reference class.
+To assess the impact of this ordering, we reversed the method, arranging the classes in descending order based on their distance from the reference class.
+The reference class remained the same as in the initial experiment (5 for UCI-HAR and 2 for USC-HAD).
+Consequently, the class order was defined as follows:
+\begin{itemize}
+\item UCI-HAR: [5, 4, 2, 0, 3, 1]
+\item USC-HAD: [2, 3, 6, 5, 7, 9, 8, 10, 11, 9, 0, 4, 1]
+\end{itemize}
+As in the initial experiment, the classes were subsequently assigned to tasks in the determined order. We refer to this class order as ``Farpair-far (FF).”
+
+In addition, we considered a condition where the baseline class was selected from the class pair with the smallest distance among all pairs.
+The closest class pairs were class 0 and class 2 in UCI-HAR, and class 10 and class 11 in USC-HAD.
+From these pairs, we selected class 0 as the reference class for UCI-HAR and class 10 as the reference class for USC-HAD.
+Based on this selection, we defined two class orders:
+\begin{itemize}
+    \item Closepair-Close (CC): Classes were arranged in ascending order based on their distance from the reference class.
+    \item Closepair-Far (CF): Classes were arranged in descending order based on their distance from the reference class.
+\end{itemize}
+
+The final class orders for each condition are presented in Table \ref{tab:task_split_FFCCCF}.
+
+
+\begin{table}[t]
+    \centering
+    \caption{Classes for each task of CD-CIL, CD-B-CIL1, CD-B-CIL2 scenarios in UCI-HAR and USC-HAD dataset for order and overlap class sensitivity study}
+
+    \resizebox{0.98\linewidth}{!}{
+    \begin{tabular}{c l  l  c c c}
+       \toprule
+       Order & Dataset & Scenarios & Task 1 & Task 2 & Task 3 \\ 
+       \midrule
+       \multirow{6}{*}{FF} & \multirow{3}{*}{UCI-HAR} & CD-CIL       & 5, 4         & 2, 0           & 1, 3 \\
+                                & & CD-B-CIL1  & 5, 4         & 5, 2, 0           & 5, 1, 3 \\
+                                & & CD-B-CIL2  & 5, 4         & 5, 4, 2, 0           & 5, 4, 1, 3 \\
+       \cmidrule(lr){2-6}
+       & \multirow{3}{*}{USC-HAD} & CD-CIL       & 2, 1, 4, 0   & 9, 11, 10, 8   & 7, 5, 6, 3 \\
+                                & & CD-B-CIL1  & 2, 1, 4, 0   & 2, 9, 11, 10, 8 & 2, 7, 5, 6, 3 \\
+                                & & CD-B-CIL2  & 2, 1, 4, 0   & 2, 1, 9, 11, 10, 8 & 2, 1, 7, 5, 6, 3 \\
+       
+       \midrule
+       \multirow{6}{*}{CC} & \multirow{3}{*}{UCI-HAR} & CD-CIL       & 0, 2         & 4, 1           & 3, 5 \\
+                                & & CD-B-CIL1  & 0, 2         & 0, 4, 1           & 0, 3, 5 \\
+                                & & CD-B-CIL2  & 0, 2         & 0, 2, 4, 1           & 0, 2, 3, 5 \\
+       \cmidrule(lr){2-6}
+       & \multirow{3}{*}{USC-HAD} & CD-CIL       & 10, 11, 8, 7 &9, 0, 6, 5& 3, 4, 1, 2\\
+                                & & CD-B-CIL1  & 10, 11, 8, 7 &10, 9, 0, 6, 5& 10, 3, 4, 1, 2\\
+                                & & CD-B-CIL2  & 10, 11, 8, 7 &10, 11, 9, 0, 6, 5& 10, 11, 3, 4, 1, 2\\
+       
+        \midrule
+        \multirow{6}{*}{CF} & \multirow{3}{*}{UCI-HAR} & CD-CIL       & 0, 5         & 3, 1           & 4, 2 \\
+                                & & CD-B-CIL1  & 0, 5         & 0, 3, 1           & 0, 4, 2 \\
+                                & & CD-B-CIL2  & 0, 5         & 0, 5, 3, 1           & 0, 5, 4, 2 \\
+       \cmidrule(lr){2-6}
+        & \multirow{3}{*}{USC-HAD} & CD-CIL       & 10, 2, 1, 4& 3, 5, 6, 0& 9, 7, 8, 11 \\
+                                    & & CD-B-CIL1  & 10, 2, 1, 4& 10, 3, 5, 6, 0& 10, 9, 7, 8, 11 \\
+                                    & & CD-B-CIL2  & 10, 2, 1, 4& 10, 2, 3, 5, 6, 0& 10, 2, 9, 7, 8, 11 \\
+        
+       
+        \bottomrule
+    \end{tabular}
+    }
+    \label{tab:task_split_FFCCCF}
+\end{table}
+
+\begin{table*}[!ht]
+    \centering
+    \caption{Results of the continual learning methods in the UCI-HAR and USC-HAD datasets (order: FF)}
+    \begin{tabular}{c c c cc|cccc|ccccc}
+        \toprule
+        Dataset & Metrics & Scenario & Naive & Offline & LwF & EWC & MAS & SI  & ER & ASER & DER & FastICARL & GR \\
+        \midrule
+
+        % === A_T ===
+        \multirow{6}{*}{$\mathcal{A}_T$} & \multirow{3}{*}{UCI-HAR} & CD-CIL & 33.25 & 95.98 & 33.62 & 34.55 & 32.84 & 28.12  & 70.64 & \textbf{83.44} & 57.77  & 66.49  & 38.59 \\
+        & & CD-B-CIL1 & 60.37 & N.A. & 60.36 & 60.35 & 59.10 & 57.18  & 79.80 & \textbf{84.45} & 81.95 & 75.43 & 60.02 \\
+        & & CD-B-CIL2 & 75.5 & N.A.& 73.53 & 70.36 & 70.50 & 73.20& \textbf{93.04} & 85.99 & 91.26  & 87.63 & 74.81 \\
+        \cmidrule(lr){2-14}
+        & \multirow{3}{*}{USC-HAD} & CD-CIL & 29.14 & 57.71 & 30.05 & 30.1 & 29.53 & 29.45 & \textbf{44.09} & 34.26 & 32.00 & 44.61 & 30.79 \\
+        & & CD-B-CIL1 & 35.89 & N.A. & 43.87 & 36.73 & 43.38 & 36.75 & 51.68 & 52.71 & \textbf{58.05} & 53.00 & 45.02 \\
+        & & CD-B-CIL2 & 49.31 & N.A.& 43.01 & 48.15 & 54.12 & 39.2  & 56.37 & 57.95 & \textbf{59.08} & 55.04 & 43.01 \\
+        \midrule
+
+        % === F_T ===
+        \multirow{6}{*}{$\mathcal{F}_T$} & \multirow{3}{*}{UCI-HAR} & CD-CIL & 99.76 & \multirow{3}{*}{N.A.} & 96.91 & 97.11 & 86.76 & 82.81 & 30.47 & \textbf{24.16} & 29.16 & 25.74 & 79.04 \\
+        & & CD-B-CIL1 & 58.29 & & 57.35 & 59.01 & 45.17 & 45.14  & 24.75 & 21.96 & \textbf{20.51} & 27.73 & 55.08 \\
+        & & CD-B-CIL2 & 33.50 & & 35.85 & 40.26 & 30.23 & 24.01 & \textbf{6.81} & 17.42 & 7.20 & 9.75 & 31.31 \\
+        \cmidrule(lr){2-14}
+        & \multirow{3}{*}{USC-HAD} & CD-CIL & 54.53 & \multirow{3}{*}{N.A.} & 47.9 & 51.82 & 27.62 & 28.01 & 39.63 & \textbf{25.23} & 25.66 & 28.42 & 37.14 \\
+        & & CD-B-CIL1 & 50.74 & & 26.92 & 49.67 & 29.02 & 21.03 & 25.85 & 20.39 & \textbf{7.54} & 20.08 & 22.61 \\
+        & & CD-B-CIL2 & 23.77 & & 27.51 & 28.91 & 12.52 & 15.62 & 16.85 & 12.25 & \textbf{9.92} & 17.86 & 27.51 \\
+        \midrule
+
+        % === A_cur ===
+        \multirow{6}{*}{$\mathcal{A}_{cur}$} & \multirow{3}{*}{UCI-HAR} & CD-CIL & 99.76 & \multirow{3}{*}{N.A.} & 98.22 & \textbf{99.30} & 90.78 & 83.33 & 84.26 & 99.54 & 68.45 & 77.94 & 91.28 \\
+        & & CD-B-CIL1 & 99.23 & & 98.59 & \textbf{99.69} & 89.22 & 87.90 & 95.75 & 98.83 & 95.62 & 93.47 & 96.74 \\
+        & & CD-B-CIL2 & 97.83 & & 96.67 & 97.20 & 89.58 & 88.13  & 97.58 & \textbf{97.61} & 96.06 & 93.03 & 95.57 \\
+        \cmidrule(lr){2-14}
+        & \multirow{3}{*}{USC-HAD} & CD-CIL & 66.11 & \multirow{3}{*}{N.A.} & 65.82 & 64.89 & 54.26 & 42.79  & \textbf{65.98} & 59.48 & 59.76 & 62.70 & 55.55 \\
+        & & CD-B-CIL1 & 78.34 & & 60.53 & \textbf{69.84} & 62.72 & 49.00 & 68.92 & 64.18 & 62.81 & 65.70 & 60.09 \\
+        & & CD-B-CIL2 & 64.59 & & 60.2 & 67.10 & 61.91 & 48.43 & \textbf{67.36} & 65.94 & 63.23 & 66.05 & 60.20 \\
+        \bottomrule
+    \end{tabular}
+    \label{tbl:main_results_ff}
+\end{table*}
+% \begin{table*}[!ht]
+%     \centering
+%     \caption{Results of the continual learning methods in the UCI-HAR and USC-HAD datasets (order: FF)}
+%     \begin{tabular}{c c c cc cccc ccc cccc}
+%         \toprule
+%         Dataset & Metrics & Scenario & Naive & Offline & LwF & EWC & MAS &SI & A-GEM & ER & ASER & DER & FastICARL& GR \\
+%         \midrule
+%         \multirow{12}{*}{UCI-HAR} &
+%         \multirow{3}{*}{$\mathcal{A}_T$} & CD-CIL & 33.25 & 95.98 & 33.62 & 34.55 & 32.84& 28.12 & 38.99 & 70.64 & \textbf{83.44} & 57.77  & 66.49  & 38.59 \\
+%         & & CD-B-CIL1 & 60.37 & N.A. & 60.36 & 60.35 & 59.10& 57.18 & 60.50 & 79.8 & \textbf{84.45}& 81.95& 75.43& 60.02\\
+%         & & CD-B-CIL2 & 75.5	& N.A. & 73.53 & 70.36 & 70.5 & 73.2 &70.88 &\textbf{93.04} &85.99 &91.26  &87.63 & 74.81 \\
+%         \cmidrule(lr){2-15}
+
+%         & \multirow{3}{*}{$\mathcal{F}_T$} & CD-CIL	& 99.76	& N.A.	&96.91	&97.11	&86.76	&82.81&90.52	&30.47	&\textbf{24.16}	&29.16		&25.74	& 79.04 \\
+%         & & CD-B-CIL1	& 58.29	& N.A.	& 57.35	& 59.01	& 45.17	& 45.14	& 56.56	& 24.75	& 21.96	& \textbf{20.51}	& 27.73	& 55.08 \\
+%         & & CD-B-CIL2	& 33.50	& N.A.	& 35.85	& 40.26	& 30.23	& 24.01	& 36.26	& \textbf{6.81}	& 17.42	& 7.2	& 9.75	& 31.31\\
+%         \cmidrule(lr){2-15}
+
+%         & \multirow{3}{*}{$\mathcal{A}_{cur}$} & CD-CIL &	99.76 &N.A. &98.22 &\textbf{99.30} &90.78 &83.33 &99.33&84.26& 99.54 &68.45 	&77.94	& 91.28 \\
+%         & &CD-B-CIL1	&99.23	&N.A.	&98.59	&\textbf{99.69}	&89.22	&87.9	&	98.2&95.75&	98.83&	95.62&	93.47	& 96.74\\
+%         & &CD-B-CIL2	&97.83	&N.A.	&96.67	&97.2	&89.58	&88.13	&	95.06&97.58&	\textbf{97.61}&	96.06&	93.03	& 95.57\\
+%         \midrule
+
+
+%         \multirow{12}{*}{USC-HAD} 
+%         &\multirow{3}{*}{$\mathcal{A}_T$} & CD-CIL & 29.14 & 57.71 & 30.05 & 30.1 & 29.53 & 29.45 & 40.12 & \textbf{44.09} & 34.26 & 32 & 44.61 & 30.79\\
+%         & & CD-B-CIL1 & 35.89 & N.A. & 43.87 & 36.73 & 43.38 & 36.75 & 42.86 & 51.68 & 52.71 & \textbf{58.05} & 53 & 45.02 \\
+%         & & CD-B-CIL2 & 49.31 & N.A. & 43.01 & 48.15 & 54.12 & 39.2 & 49.62 & 56.37 & 57.95 & \textbf{59.08} & 55.04 & 43.01 \\
+        
+%         \cmidrule(lr){2-15}
+%         &\multirow{3}{*}{$\mathcal{F}_T$} & CD-CIL & 54.53 & N.A. & 47.9 & 51.82 & 27.62 & 28.01 & 57.32 & 39.63 & \textbf{25.23} & 25.66 & 28.42 & 37.14\\ 
+%         &  & CD-B-CIL1 & 50.74 & N.A. & 26.92 & 49.67 & 29.02 & 21.03 & 37.75 & 25.85 & 20.39 & \textbf{7.54} & 20.08 & 22.61\\
+%         &  & CD-B-CIL2 & 23.77 & N.A. & 27.51 & 28.91 & 12.52 & 15.62 & 29.07 & 16.85 & 12.25 & \textbf{9.92} & 17.86 & 27.51 \\
+%         \cmidrule(lr){2-15}
+%         & \multirow{3}{*}{$\mathcal{A}_{cur}$}  &CD-CIL & 66.11 & N.A. & 65.82 & 64.89 & 54.26 & 42.798 & 65.74 & \textbf{65.98} & 59.48 & 59.76 & 62.7 & 55.55\\
+%         &  & CD-B-CIL1 & 78.34 & N.A. & 60.53 & \textbf{69.84} & 62.72 & 49 & 68.03 & 68.92 & 64.18 & 62.81 & 65.7 & 60.09 \\
+%         &  & CD-B-CIL2 & 64.59 & N.A. & 60.2 & 67.1 & 61.91 & 48.43 & 67.02 & \textbf{67.36} & 65.94 & 63.23 & 66.05 & 60.20\\
+%         \bottomrule
+%     \end{tabular}
+%     \label{tbl:main_results_ff}
+% \end{table*}
+
+
+\begin{table*}[!ht]
+    \centering
+    \caption{Results of the continual learning methods in the UCI-HAR and USC-HAD datasets (order: CC)}
+    \begin{tabular}{c c c cc|cccc|ccccc}
+        \toprule
+        Dataset & Metrics & Scenario & Naive & Offline & LwF & EWC & MAS & SI  & ER & ASER & DER & FastICARL & GR \\
+        \midrule
+
+        % === A_T ===
+        \multirow{6}{*}{$\mathcal{A}_T$} & \multirow{3}{*}{UCI-HAR} & CD-CIL & 33.33 & 95.98 & 41.13 & 34.43 & 36.54 & 34.86 & 45.68 & \textbf{90.46} & 64.61 & 56.25 & 44.04 \\
+        & & CD-B-CIL1 & 65.77 & \multirow{2}{*}{N.A.}  & 68.53 & 74.71 & 66.35 & 65.02 & 74.89 & \textbf{97.99} & 82.03 & 78.08 & 66.48 \\
+        & & CD-B-CIL2 & 84.85 && 82.79 & 86.53 & 84.74 & 79.34 & 89.31 & \textbf{97.4} & 90.99 & 91.45 & 84.97 \\
+        \cmidrule(lr){2-14}
+        & \multirow{3}{*}{USC-HAD} & CD-CIL & 29.14 & 57.71 & 30.05 & 30.10 & 29.53 & 29.45  & 40.12 & 44.09 & 34.26 & \textbf{44.61} & 26.27 \\
+        & & CD-B-CIL1 & 39.26 &\multirow{2}{*}{N.A.}  & 34.69 & 39.09 & 38.70 & 34.61 & 47.46 & 48.64 & 46.47 & \textbf{50.29} & 34.14 \\
+        & & CD-B-CIL2 & 33.11 && 37.08 & 36.3 & 38.17 & 30.64 & \textbf{45.89} & 43.37 & 43.70 & 35.95 & 34.44 \\
+        \midrule
+
+        % === F_T ===
+        \multirow{6}{*}{$\mathcal{F}_T$} & \multirow{3}{*}{UCI-HAR} & CD-CIL & 97.09 & \multirow{3}{*}{N.A.} & 83.83 & 96.47 & 56.71 & 56.05& 76.43 & \textbf{11.94} & 41.93 & 61.96 & 71.82 \\
+        & & CD-B-CIL1 & 49.38 & & 26.04 & 34.24 & 32.68 & 23.90 & 35.32 & \textbf{2.87} & 18.92 & 30.77 & 47.58 \\
+        & & CD-B-CIL2 & 21.64 & & 19.16 & 17.67 & 14.10 & 8.20 & 14.99 & \textbf{2.63} & 12.08 & 10.92 & 22.02 \\
+        \cmidrule(lr){2-14}
+        & \multirow{3}{*}{USC-HAD} & CD-CIL & 31.03 & \multirow{3}{*}{N.A.} & 38.93 & 34.78 & 31.49 & 25.71 & 7.61 & 13.90 & 28.78 & \textbf{7.45} & 26.74 \\
+        & & CD-B-CIL1 & 27.24 & & 24.59 & 27.32 & 38.05 & 30.74  & 7.29 & 9.21 & 11.34 & \textbf{6.22} & 25.82 \\
+        & & CD-B-CIL2 & 26.08 & & 21.65 & 30.94 & 21.76 & 18.98  & \textbf{7.82} & 10.55 & 15.54 & 10.44 & 16.90 \\
+        \midrule
+
+        % === A_cur ===
+        \multirow{6}{*}{$\mathcal{A}_{cur}$} & \multirow{3}{*}{UCI-HAR} & CD-CIL & 98.06 & \multirow{3}{*}{N.A.} & 97.02 & \textbf{98.74} & 74.35 & 72.02  & 96.64 & 98.07 & 92.56 & 97.56 & 91.92 \\
+        & & CD-B-CIL1 & 98.69 & & 85.67 & 97.47 & 88.81 & 80.09 & 98.44 & \textbf{98.87} & 94.27 & 98.30 & 98.19 \\
+        & & CD-B-CIL2 & 97.75 & & 94.46 & 96.85 & 92.98 & 83.48 & \textbf{98.52} & 98.02 & 97.41 & 97.31 & 98.31 \\
+        \cmidrule(lr){2-14}
+        & \multirow{3}{*}{USC-HAD} & CD-CIL & 49.82 & \multirow{3}{*}{N.A.} & 55.03 & 53.28 & 50.52 & 45.96 & 39.68 & 52.06 & 53.44 & 46.14 & 44.10\\
+        & & CD-B-CIL1 & 56.66 & & 51.05 & 57.12 & \textbf{64.06} & 55.11  & 50.19 & 53.50 & 52.94 & 53.02 & 51.35 \\
+        & & CD-B-CIL2 & 50.5 & & 51.51 & \textbf{56.93} & 52.68 & 43.18 & 48.81 & 47.74 & 54.06 & 41.67 & 45.43 \\
+        \bottomrule
+    \end{tabular}
+    \label{tbl:main_results_cc}
+\end{table*}
+
+
+% \begin{table*}[!ht]
+%     \centering
+%     \caption{Results of the continual learning methods in the UCI-HAR and USC-HAD datasets (order: CC)}
+%     \begin{tabular}{c c c cc cccc ccc cccc}
+%         \toprule
+%         Dataset & Metrics & Scenario & Naive & Offline & LwF & EWC & MAS &SI & A-GEM & ER & ASER & DER & FastICARL& GR \\
+%         \midrule
+%         \multirow{12}{*}{UCI-HAR} &
+%         % \cmidrule(lr){2-15}
+%         \multirow{3}{*}{$\mathcal{A}_T$} & CD-CIL &   33.33 & 95.98 & 41.13 & 34.43 & 36.54 & 34.86 & 33.95 & 45.68 & \textbf{90.46} & 64.61 & 56.25 & 44.04\\
+%         & & CD-B-CIL1  & 65.77	& N.A.	& 68.53	& 74.71	& 66.35	& 65.02	& 65.35 & 74.89& \textbf{97.99}	& 82.03	& 78.08& 66.48\\
+%         & & CD-B-CIL2 & 84.85 & N.A. & 82.79 & 86.53 & 84.74 & 79.34 & 85.00 & 89.31 & \textbf{97.4} & 90.99 & 91.45 & 84.97\\
+%         \cmidrule(lr){2-15}
+%         & \multirow{3}{*}{$\mathcal{F}_T$} & CD-CIL &  97.09 & N.A. & 83.83 & 96.47 & 56.71 & 56.05 & 94.57& 76.43 & \textbf{11.94} & 41.93  & 61.96 & 71.82\\
+%         & & CD-B-CIL1 & 49.38 & N.A. & 26.04 & 34.24 & 32.68 & 23.9& 46.63 & 35.32 & \textbf{2.87} & 18.92 & 30.77 & 47.58 \\
+%         & & CD-B-CIL2 & 21.64 & N.A. & 19.16 & 17.67 & 14.1 & 8.2 & 18.69 & 14.99 & \textbf{2.63} & 12.08 & 10.92 & 22.02 \\
+%         \cmidrule(lr){2-15}
+%         & \multirow{3}{*}{$\mathcal{A}_{cur}$} & Class & 98.06 & N.A. & 97.02 & \textbf{98.74} & 74.35 & 72.02 & 97.00 & 96.64 & 98.07 & 92.56  & 97.56 & 91.92\\
+%         & & CD-B-CIL1 & 98.69 & N.A. & 85.67 & 97.47 & 88.81 & 80.09 & 96.44 & 98.44 & \textbf{98.87} & 94.27  & 98.3 & 98.19 \\
+%         & & CD-B-CIL2 & 97.75 & N.A. & 94.46 & 96.85 & 92.98 & 83.48& 97.34 & \textbf{98.52} & 98.02 & 97.41  & 97.31 & 98.31 \\
+        
+%         \midrule  
+
+%         \multirow{12}{*}{USC-HAD} 
+%         & \multirow{3}{*}{$\mathcal{A}_T$} & CD-CIL & 29.14 & 57.71 & 30.05 & 30.1 & 29.53 & 29.45 & 32 & 40.12 & 44.09 & 34.26 & \textbf{44.61} & 26.27 \\
+%         & & CD-B-CIL1 & 39.26 & N.A. & 34.69 & 39.09 & 38.7 & 34.61 & 37.77 & 47.46 & 48.64 & 46.47 & \textbf{50.29} & 34.14 \\
+%         & & CD-B-CIL2 & 33.11 & N.A. & 37.08 & 36.3 & 38.17 & 30.64 & 36.15 & \textbf{45.89} & 43.37 & 43.7 & 35.95 & 34.44\\
+        
+%         \cmidrule(lr){2-15}
+
+%         &\multirow{3}{*}{$\mathcal{F}_T$} & CD-CIL & 31.03 & N.A. & 38.93 & 34.78 & 31.49 & 25.71 & 38.76 & 7.61 & 13.9 & 28.78 & \textbf{7.45} & 26.74 \\
+%         & & CD-B-CIL1 & 27.24 & N.A. & 24.59 & 27.32 & 38.05 & 30.74 & 20.7 & 7.29 & 9.21 & 11.34 & \textbf{6.22} & 25.82 \\
+%         & & CD-B-CIL2 & 26.08 & N.A. & 21.65 & 30.94 & 21.76 & 18.98 & 20.82 & \textbf{7.82} & 10.55 & 15.54 & 10.44 & 16.9\\
+%         \cmidrule(lr){2-15}
+
+%         &\multirow{3}{*}{$\mathcal{A}_{cur}$} & CD-CIL & 49.82 & N.A. & 55.03 & 53.28 & 50.52 & 45.96 & \textbf{57.84} & 39.68 & 52.06 & 53.44 & 46.14 & 44.1 \\
+%         & & CD-B-CIL1 & 56.66 & N.A. & 51.05 & 57.12 & \textbf{64.06} & 55.11 & 51.23 & 50.19 & 53.5 & 52.94 & 53.02 & 51.35 \\
+%         & & CD-B-CIL2 & 50.5 & N.A. & 51.51 & \textbf{56.93} & 52.68 & 43.18 & 50.03 & 48.81 & 47.74 & 54.06 & 41.67 & 45.43\\
+%     \bottomrule
+%     \end{tabular}
+%     \label{tbl:main_results_cc}
+% \end{table*}
+
+
+\begin{table*}[!ht]
+    \centering
+    \caption{Results of the continual learning methods in the UCI-HAR and USC-HAD datasets (order: CF)}
+    \begin{tabular}{c c c cc|cccc|ccccc}
+        \toprule
+        Dataset & Metrics & Scenario & Naive & Offline & LwF & EWC & MAS & SI  & ER & ASER & DER & FastICARL & GR \\
+        \midrule
+
+        % === A_T ===
+        \multirow{6}{*}{$\mathcal{A}_T$} & \multirow{3}{*}{UCI-HAR} & Class & 32.66 & 95.98 & 36.16 & 34.09 & 37.60 & 35.67  & 68.37 & \textbf{79.28} & 63.42 & 73.57 & 34.22 \\
+        & & CD-B-CIL1 & 62.09 & \multirow{2}{*}{N.A.} & 67.22 & 64.25 & 52.32 & 43.70  & 85.10 & \textbf{94.27} & 81.42 & 81.34 & 62.89 \\
+        & & CD-B-CIL2 & 83.53 & & 83.76 & 84.14 & 83.41 & 75.91 & 93.98 & \textbf{94.53} & 86.37 & 90.82 & 83.75 \\
+        \cmidrule(lr){2-14}
+        & \multirow{3}{*}{USC-HAD} & CD-CIL & 25.19 & 57.71 & 33.04 & 30.10 & 40.93 & 27.07  & 29.47 & \textbf{51.71} & 33.20 & 32.01 & 31.53 \\
+        & & CD-B-CIL1 & 24.76 & \multirow{2}{*}{N.A.} & 30.78 & 26.59 & 36.84 & 26.92  & 41.58 & \textbf{47.30} & 41.81 & 40.03 & 30.42 \\
+        & & CD-B-CIL2 & 42.05 & & 42.59 & 47.14 & 44.96 & 40.18 & 51.46 & \textbf{52.05} & 51.34 & 51.04 & 38.22 \\
+        \midrule
+
+        % === F_T ===
+        \multirow{6}{*}{$\mathcal{F}_T$} & \multirow{3}{*}{UCI-HAR} & CD-CIL & 98.16 & \multirow{3}{*}{N.A.} & 94.84 & 97.85 & 83.32 & 90.95 & 31.26 & 28.10 & \textbf{14.61} & 23.07 & 93.46 \\
+        & & CD-B-CIL1 & 56.38 && 44.74 & 52.35 & 51.72 & 61.04  & 6.01 & 6.25 & \textbf{3.11} & 19.53 & 51.08 \\
+        & & CD-B-CIL2 & 23.37 & & 22.12 & 22.66 & 16.67 & 14.18 & 5.64 & 6.61 & \textbf{3.30} & 6.32 & 20.67 \\
+        \cmidrule(lr){2-14}
+        & \multirow{3}{*}{USC-HAD} & CD-CIL & 55.93 & \multirow{3}{*}{N.A.} & 48.26 & 34.78 & 19.21 & 51.78 & 37.45 & \textbf{13.43} & 23.65 & 36.72 & 28.74 \\
+        & & CD-B-CIL1 & 62.48 & & 56.20 & 53.45 & 48.20 & 39.78 & 35.09 & 25.36 & \textbf{22.85} & 30.71 & 37.10 \\
+        & & CD-B-CIL2 & 30.07 & & 23.29 & 23.95 & 27.20 & 29.53 & 15.64 & 15.88 & \textbf{13.06} & 18.05 & 16.98 \\
+        \midrule
+
+        % === A_cur ===
+        \multirow{6}{*}{$\mathcal{A}_{cur}$} & \multirow{3}{*}{UCI-HAR} & Class & 98.11 & \multirow{3}{*}{N.A.} & \textbf{99.38} & 99.32 & 93.15 & 96.30  & 89.21 & 98.01 & 71.98 & 88.50 & 99.02 \\
+        & & CD-B-CIL1 & 99.67 & & \textbf{97.04} & 99.15 & 86.79 & 84.39 & 88.81 & 98.44 & 80.95 & 93.77 & 96.94 \\
+        & & CD-B-CIL2 & 99.11 & & 98.51 & \textbf{99.01} & 94.52 & 85.24 & 97.50 & 98.93 & 88.16 & 95.03 & 97.53 \\
+        \cmidrule(lr){2-14}
+        & \multirow{3}{*}{USC-HAD} & CD-CIL & 62.48 & \multirow{3}{*}{N.A.} & \textbf{65.21} & 53.28 & 50.60 & 61.58 & 54.04 & 60.29 & 48.28 & 56.19 & 50.35 \\
+        & & CD-B-CIL1 & 66.41 & & 68.25 & 62.22 & \textbf{68.51} & 52.93 & 64.00 & 64.03 & 56.45 & 60.50 & 55.06 \\
+        & & CD-B-CIL2 & 62.10 & & 57.69 & \textbf{63.11} & 62.67 & 59.86 & 61.34 & 62.13 & 58.18 & 61.67 & 48.76 \\
+        \bottomrule
+    \end{tabular}
+    \label{tbl:main_results_cf}
+\end{table*}
+
+% \begin{table*}[!ht]
+%     \centering
+%     \caption{Results of the continual learning methods in the UCI-HAR and USC-HAD datasets(order: CF)}
+%     \begin{tabular}{c c c cc cccc ccc cccc}
+%         \toprule
+%         Dataset & Metrics & Scenario & Naive & Offline & LwF & EWC & MAS &SI & A-GEM & ER & ASER & DER & FastICARL& GR \\
+%         \midrule
+%         \multirow{12}{*}{UCI-HAR} &
+%         % \cmidrule(lr){2-15}
+%         \multirow{3}{*}{$\mathcal{A}_T$} & Class & 32.66 & 95.98 & 36.16 & 34.09 & 37.6 & 35.67 & 40.5 & 68.37 & \textbf{79.28} & 63.42 & 73.57 & 34.22\\
+%         & & CD-B-CIL1 & 62.09 & N.A. & 67.22 & 64.25 & 52.32 & 43.7 & 75.97& 85.1 & \textbf{94.27} & 81.42  & 81.34 & 62.89 \\
+%         & & CD-B-CIL2 & 83.53 & N.A. & 83.76 & 84.14 & 83.41 & 75.91 & 84.86 & 93.98 & \textbf{94.53} & 86.37  & 90.82 & 83.75\\
+%         \cmidrule(lr){2-15}
+%         & \multirow{3}{*}{$\mathcal{F}_T$} & CD-CIL & 98.16 & N.A. & 94.84 & 97.85 & 83.32 & 90.95 & 88.59 & 31.26 & 28.1 & \textbf{14.61} & 23.07 & 93.46\\
+%         & & CD-B-CIL1 & 56.38 & N.A. & 44.74 & 52.35 & 51.72 & 61.04 & 31.54 & 6.01 & 6.25 & \textbf{3.11}  & 19.53 & 51.08 \\
+%         & & CD-B-CIL2 & 23.37 & N.A. & 22.12 & 22.66 & 16.67 & 14.18  & 20.33 & 5.64 & 6.61 & \textbf{3.3} & 6.32 & 20.67\\
+%         \cmidrule(lr){2-15}
+%         & \multirow{3}{*}{$\mathcal{A}_{cur}$} & Class & 98.11 & N.A. & 99.38 & 99.32 & 93.15 & 96.3 & \textbf{99.55}  & 89.21 & 98.01 & 71.98 & 88.5 & 99.02\\
+%         & &CD-B-CIL1 & 99.67 & N.A. & \textbf{97.04} & 99.15 & 86.79 & 84.39 & 97.00 & 88.81 & 98.44 & 80.95  & 93.77 & 96.94 \\
+%         & &CD-B-CIL2 & 99.11 & N.A. & 98.51 & \textbf{99.01} & 94.52 & 85.24 & 98.42 & 97.5 & 98.93 & 88.16 & 95.03 & 97.53\\
+%         \midrule  
+
+%         \multirow{12}{*}{USC-HAD} 
+%         & \multirow{3}{*}{$\mathcal{A}_T$} & CD-CIL & 25.19 & 57.71 & 33.04 & 30.1 & 40.93 & 27.07 & 26.22 & 29.47 & \textbf{51.71} & 33.2 & 32.01 & 31.53 \\
+%         & & CD-B-CIL1 & 24.76 & N.A. & 30.78 & 26.59 & 36.84 & 26.92 & 34.95 & 41.58 & \textbf{47.3} & 41.81 & 40.03 & 30.42\\
+%         & & CD-B-CIL2 & 42.05 & N.A. & 42.59 & 47.14 & 44.96 & 40.18 & 42.9 & 51.46 & \textbf{52.05} & 51.34 & 51.04 & 38.22\\
+        
+%         \cmidrule(lr){2-15}
+
+
+%         &\multirow{3}{*}{$\mathcal{F}_T$} & CD-CIL & 55.93 & N.A. & 48.26 & 34.78 & 19.21 & 51.78 & 52.28 & 37.45 & \textbf{13.43} & 23.65 & 36.72 & 28.74 \\
+%         & & CD-B-CIL1 &62.48 & N.A. & 56.2 & 53.45 & 48.2 & 39.78 & 49.86 & 35.09 & 25.36 & \textbf{22.85} & 30.71 & 37.1 \\
+%         & & CD-B-CIL2 &30.07 & N.A. & 23.29 & 23.95 & 27.2 & 29.53 & 34.8 & 15.64 & 15.88 & \textbf{13.06} & 18.05 &  16.98\\
+%         \cmidrule(lr){2-15}
+
+%         &\multirow{3}{*}{$\mathcal{A}_{cur}$} & CD-CIL &62.48 & N.A. & \textbf{65.21} & 53.28 & 50.6 & 61.58 & 61.08 & 54.04 & 60.29 & 48.28 & 56.19 & 50.35\\
+%         & & CD-B-CIL1 & 66.41 & N.A. & 68.25 & 62.22 & \textbf{68.51} & 52.93 & 68.19 & 64 & 64.03 & 56.45 & 60.5 & 55.06 \\
+%         & & CD-B-CIL2 & 62.1 & N.A. & 57.69 & 63.11 & 62.67 & 59.86 & \textbf{65.88} & 61.34 & 62.13 & 58.18 & 61.67 & 48.76\\
+
+        
+%     \bottomrule
+%     \end{tabular}
+%     \label{tbl:main_results_cf}
+% \end{table*}
+
+\subsubsection{Results}
+Table \ref{tbl:main_results_ff}, Table \ref{tbl:main_results_cc}, and Table \ref{tbl:main_results_cf} present the results for the FF, CC, and CF class orders, respectively.
+Note that we excluded the results for DIL, as the class order does not affect them.
+
+For the UCI-HAR dataset, in most cases, CD-B-CIL2 showed the highest accuracy, followed by CD-B-CIL1 and CD-CIL across all orders (except for ASER in the CC class order).
+For the USC-HAD dataset, in the FF class order, the same trend was observed in all scenarios except for LwF and GR: CD-B-CIL2 showed the highest accuracy, followed by CD-B-CIL1 and CD-CIL.
+
+However, in the CC and CF class orders for the USC-HAD dataset, the trend was different.
+In the CC class order, for all algorithms except for LwF and GR, CD-B-CIL1 showed the highest accuracy, followed by CD-B-CIL2 and CD-CIL in all scenarios.
+For Naive, MAS, and SI, in the CD-B-CIL1 and CD-B-CIL2 scenarios, CD-B-CIL2 showed lower final average forgetting and lower average current accuracy than CD-B-CIL1.
+In EWC, ER, and ASER, CD-B-CIL2 showed higher final average forgetting and lower average current accuracy than CD-B-CIL1.
+This suggests that the model tends to lose both plasticity and stability when adding an overlap class to tasks 2 and 3.
+In FastICARL, CD-B-CIL2 showed higher final average forgetting and higher average current accuracy than CD-B-CIL1.
+This suggests that the model tends to gain plasticity but lose stability when adding an overlap class to tasks 2 and 3.
+In DER, CD-B-CIL2 showed higher final average forgetting and lower average current accuracy than CD-B-CIL1.
+This suggests that the model tends to gain stability but lose plasticity when adding an overlap class to tasks 2 and 3.
+
+In the CF class order, for ER and FastICARL, CD-B-CIL2 showed the highest accuracy, followed by CD-B-CIL1 and CD-CIL in all scenarios.
+For Naive, LwF, EWC, MAS, ASER, and GR, in the CD-CIL and CD-B-CIL1 scenarios, CD-B-CIL1 had higher final average forgetting and higher average current accuracy than both CD-CIL and CD-B-CIL2.
+Regarding the final average forgetting and average current accuracy in the CD-CIL and CD-B-CIL1 scenarios for these algorithms, in Naive, LwF, EWC, MAS, ASER and GR, CD-B-CIL1 had higher final average forgetting and higher average current accuracy than CD-CIL and CD-B-CIL2.
+This suggests that the model tends to gain plasticity but lose stability when adding an overlap class to tasks 2 and 3.
+In SI, CD-B-CIL1 had lower final average forgetting and lower average current accuracy than CD-CIL.
+This suggests that the model tends to gain stability but lose plasticity when adding an overlap class to tasks 2 and 3.
+
+\subsection{Answers to Research Question}
+\subsubsection{RQ1: Which continual learning method achieves the best performance under the CD-B-CIL scenario in IMU-based HAR?}
+In CD-B-CIL1 scenarios, ASER, DER, or FastICARL showed the highest accuracy, and in CD-B-CIL2 scenarios, ER, ASER, or DER showed the highest accuracy.
+The algorithm achieving the highest accuracy varies depending on the class order and overlap settings (CD-B-CIL1, CD-B-CIL2), making it difficult to draw a consistent conclusion about the best algorithm.
+However, replay-based methods generally achieved higher accuracy than regularization-based ones.
+
+\subsubsection{RQ2: Does the CD-B-CIL scenario offer improved performance over the standard CD-CIL scenario?}
+In the UCI-HAR dataset, the CDBCIL scenarios (CD-B-CIL1 and CD-B-CIL2 scenarios) outperformed CD-CIL but underperformed DIL.
+A similar trend was observed in the USC-HAD dataset, except when the class order was CF.
+However, in the CF class order, some algorithms in CD-B-CIL1 exhibited a slight decrease in accuracy compared to CD-CIL.
+The reason CD-B-CIL1 showed lower accuracy than CD-CIL in the CF order may be attributed to the impact of Task 3.
+Task 3 consists of several classes (9, 7, 8, and 11) which is highly similar to overlap class (Class 10).
+As a result, the model may have struggled to distinguish Class 10 from these similar classes, leading to a decline in overall accuracy.
+On the other hand, in CD-CIL, Class 10 was learned only in Task 1 and remained unaffected by new classes in later tasks.
+This preservation of learned features contributed to better recognition of both past and new classes.
+Additionally, CD-B-CIL2, which retains both Class 10 and Class 2, appears to have mitigated forgetting effects in Task 3.
+Since Class 2 is far from Class 10 in the feature space, it may have acted as a stabilizing factor, preventing excessive drift in the representation of Class 10.
+\subsubsection{RQ3: How does increasing the number of overlapping classes between tasks influence recognition accuracy?}
+Compared with the CD-B-CIL1 scenario and the CD-B-CIL2 scenario, in the UCI-HAR dataset, accuracy increased in all conditions as the number of overlapping classes increased.
+A similar trend was observed in the USC-HAD dataset, except for the CC class order.
+However, in the CC class order, some algorithms in CD-B-CIL2 had lower accuracy than in CD-B-CIL1.
+The lower accuracy of CD-B-CIL2 compared to CD-B-CIL1 in the CC scenario may be attributed to the way the class order is structured in CC.
+Since CD-B-CIL2 introduces classes based on proximity, two highly similar classes often reappear in multiple tasks.
+For instance, in CD-B-CIL2, both Class 10 and Class 11 are repeatedly introduced in Tasks 2 and 3, and these two classes are highly similar.
+As a result, when updating the model in Tasks 2 and 3, it must refine its ability to distinguish these similar classes, which hinders learning new classes and retaining previously learned information.
+On the other hand, in CD-B-CIL1, only Class 10 is introduced. Compared to Task 1 classes, Class 10 is more distinct from those in Tasks 2 and 3, making it easier to distinguish.
+Consequently, parameter updates during training facilitate better learning of new classes, resulting in overall higher accuracy for CD-B-CIL1.
+
+\subsection{Benefits of CDBCIL over CD-CIL}
+% もう少し描きたいが思いつかない．
+The CDBCIL scenario demonstrated higher accuracy in many cases compared to CD-CIL.
+In CD-CIL, each task introduces entirely new domains and new classes, which significantly increases the learning difficulty and tends to hinder the retention of previously acquired knowledge. 
+In contrast, CDBCIL includes some previously learned classes in subsequent tasks, allowing these classes to serve as ``anchors'' across domains, thereby contributing to more stable learning. 
+These findings suggest that in realistic settings—where both new domains and new classes emerge simultaneously—the reuse of a subset of known classes may help maintain the performance of continual learning models at a practical level.
+
+Looking ahead, continual learning systems are expected to evolve into more practical forms, with online continual learning settings~\cite{schiemer2023online}, where full-batch training where the model is continuously updated using sequentially acquired data.
+In such settings, task boundaries may not be clearly defined, and the distinction between new and previously encountered classes can become ambiguous. 
+Therefore, frameworks that allow for class overlap, such as the CDBCIL and Blurry CIL scenarios, are likely to gain increasing importance as more realistic and practical scenarios for continual learning.
+
+\subsection{Limitations and Future Work}
+\subsubsection{Metrics for selecting the overlapping class and class order}
+The order of tasks and classes in continual learning has been explored in several studies within the context of computer vision.
+For example, Masana et al.~\cite{masana2020class} have demonstrated that the order of tasks and classes significantly impacts the accuracy of continual learning,
+while He et al.~\cite{he2022rethinking} has proposed a method for determining an appropriate class order.
+Although these studies were designed for image data, they may also be applicable to time-series data, as in this study.
+Moreover, these studies do not consider evaluation metrics specifically designed for blurry problem settings.
+Our study suggests that, in addition to class order, the choice of overlapping classes in blurry scenarios significantly impacts performance.
+Future research should focus not only on class order but also on developing evaluation metrics for selecting overlapping classes.
+
+\subsubsection{Expansion to other datasets and algorithms}
+In this study, we used the UCI-HAR and USC-HAD datasets to evaluate the performance of continual learning algorithms in Blurry Class Incremental Learning (Blurry CIL) scenarios.
+A limitation of this study is that it considered only two datasets.
+In the future, we will extend this research to other human activity datasets to examine how the number and order of overlapping classes affect model accuracy.
+
+To the best of our knowledge, no existing studies have applied a Blurry CIL scenario to time-series data.
+CD-CIL has been explored not only for IMU data but also for other types of time-series data, such as electromyography (EMG) signals~\cite{kanoga2024deep}.
+In the future, we plan to extend the Blurry CIL setting to other types of time-series data.
+
+As a continual learning methods, we selected four regularization-based methods (LwF, EWC, MAS, SI) and five replay-based methods (ER, ASER, DER, FastICARL, GR).
+In our study, parameter isolated methods such as Progressive Neural Networks (PNN)~\cite{rusu2016progressive} were not considered. 
+We will include such parameter isolation methods in our future studies.
+
+
+
+
+
+\section{Conclusion}
+In this study, we explored Cross-domain Blurry Class Incremental Learning scenarios for human activity datasets.
+We used the UCI-HAR and USC-HAD datasets to evaluate the performance of nine continual learning algorithms in CD-CIL, CD-B-CIL1, CD-B-CIL2, and Domain-IL scenarios.
+Our findings can be summarized as follows:
+\begin{itemize}
+    \item (i) Similar to the Class IL scenario, replay-based methods in the CDBCIL scenario achieved higher accuracy than regularization-based methods.
+    \item (ii) CDBCIL scenario generally outperformed the CD-CIL scenario but underperformed the DIL scenario. However, in some cases, depending on the class order, its accuracy was lower than that of the CD-CIL scenario.
+    \item (iii) Increasing the number of recurring classes often improved accuracy. However, in certain class orders, adding more overlapping classes led to a decline in accuracy.
+\end{itemize}
+
+In future work, we plan to conduct experiments using different datasets from HAR and other domains, as well as further investigate the effects of class order.
+
+
+\bibliographystyle{IEEEtran}
+\bibliography{Reference}
+\end{document}

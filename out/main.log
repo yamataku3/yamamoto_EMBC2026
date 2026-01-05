@@ -1,4 +1,4 @@
-This is e-upTeX, Version 3.141592653-p4.1.1-u1.30-230214-2.6 (utf8.euc) (TeX Live 2024) (preloaded format=platex 2024.3.22)  4 JAN 2026 21:27
+This is e-upTeX, Version 3.141592653-p4.1.1-u1.30-230214-2.6 (utf8.euc) (TeX Live 2024) (preloaded format=platex 2024.3.22)  5 JAN 2026 18:13
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -538,7 +538,7 @@ LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
 File: Figs/EMBC_teaser.eps Graphic file (type eps)
 <Figs/EMBC_teaser.eps>
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
-(Font)              No change on input line 136.
+(Font)              No change on input line 137.
 
 Underfull \vbox (badness 5119) has occurred while \output is active []
 
@@ -547,63 +547,67 @@ Underfull \vbox (badness 5119) has occurred while \output is active []
 
 ]
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
-(Font)              No change on input line 164.
+(Font)              No change on input line 162.
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
-(Font)              No change on input line 165.
+(Font)              No change on input line 163.
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
-(Font)              No change on input line 169.
+(Font)              No change on input line 167.
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
-(Font)              No change on input line 174.
-LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
-(Font)              No change on input line 176.
-[2]
-LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
-(Font)              No change on input line 233.
-LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
-(Font)              No change on input line 292.
-File: Figs/EMBC_Scenarios.eps Graphic file (type eps)
-<Figs/EMBC_Scenarios.eps> [3]
-LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
-(Font)              No change on input line 312.
-LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
-(Font)              No change on input line 329.
-LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
-(Font)              No change on input line 347.
-LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
-(Font)              No change on input line 358.
-LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
-(Font)              No change on input line 366.
-LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
-(Font)              No change on input line 370.
-LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
-(Font)              No change on input line 398.
-[4]
-Underfull \hbox (badness 5893) in paragraph at lines 492--496
-[]\OT1/ptm/m/n/10 Among the eval-u-ated con-tin-ual learn-ing al-go-rithms,
+(Font)              No change on input line 172.
+
+Underfull \hbox (badness 2478) in paragraph at lines 173--177
+\OT1/ptm/m/n/10 regularization-based methods--Learning with-out For-get-ting
  []
 
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
-(Font)              No change on input line 499.
+(Font)              No change on input line 291.
+File: Figs/EMBC_Scenarios.eps Graphic file (type eps)
+<Figs/EMBC_Scenarios.eps>
+LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
+(Font)              No change on input line 311.
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
+(Font)              No change on input line 317.
+LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
+(Font)              No change on input line 328.
+[2]
+LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
+(Font)              No change on input line 346.
+LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
+(Font)              No change on input line 357.
+LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
+(Font)              No change on input line 365.
+LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
+(Font)              No change on input line 369.
+LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
+(Font)              No change on input line 397.
+
+Underfull \hbox (badness 5893) in paragraph at lines 491--495
+[]\OT1/ptm/m/n/10 Among the eval-u-ated con-tin-ual learn-ing al-go-rithms,
+ []
+
+[3]
+LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
 (Font)              No change on input line 500.
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
-(Font)              No change on input line 502.
+(Font)              No change on input line 501.
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
-(Font)              No change on input line 507.
+(Font)              No change on input line 503.
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
-(Font)              No change on input line 511.
+(Font)              No change on input line 508.
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
-(Font)              No change on input line 514.
+(Font)              No change on input line 513.
+LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
+(Font)              No change on input line 516.
 
-Underfull \hbox (badness 3713) in paragraph at lines 522--525
+Underfull \hbox (badness 3713) in paragraph at lines 524--527
 []\OT1/ptm/m/n/10 As a con-tin-ual learn-ing meth-ods, we se-lected four
  []
 
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/it' undefined
-(Font)              No change on input line 527.
-[5]
+(Font)              No change on input line 529.
+[4]
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
-(Font)              No change on input line 533.
+(Font)              No change on input line 535.
 (out/main.bbl
 LaTeX Font Info:    Kanji font shape `JY1/mc/m/sc' undefined
 (Font)              No change on input line 2.
@@ -639,21 +643,20 @@ LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
 (Font)              No change on input line 66.
 LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
 (Font)              No change on input line 69.
-LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
-(Font)              No change on input line 72.
-LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
-(Font)              No change on input line 75.
 
-Underfull \hbox (badness 3724) in paragraph at lines 75--76
+Underfull \hbox (badness 3724) in paragraph at lines 69--70
 []\OT1/ptm/m/n/8 B. Kann, S. Castellanos-Paez, and P. La-landa, ``Eval-u-a-tion of
  []
 
 
-Underfull \hbox (badness 1990) in paragraph at lines 75--76
+Underfull \hbox (badness 1990) in paragraph at lines 69--70
 \OT1/ptm/m/n/8 regularization-based con-tin-ual learn-ing ap-proaches: Ap-pli-ca-tion to
  []
 
-[6]
+LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
+(Font)              No change on input line 72.
+LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
+(Font)              No change on input line 75.
 LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
 (Font)              No change on input line 78.
 LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
@@ -669,9 +672,9 @@ LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
 LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
 (Font)              No change on input line 96.
 LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
-(Font)              No change on input line 99.
+(Font)              No change on input line 96.
 LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
-(Font)              No change on input line 102.
+(Font)              No change on input line 99.
 LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
 (Font)              No change on input line 102.
 LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
@@ -692,20 +695,11 @@ LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
 (Font)              No change on input line 126.
 LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
 (Font)              No change on input line 129.
+[5]
 LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
 (Font)              No change on input line 132.
 LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
 (Font)              No change on input line 135.
-LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
-(Font)              No change on input line 138.
-LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
-(Font)              No change on input line 141.
-LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
-(Font)              No change on input line 144.
-LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
-(Font)              No change on input line 147.
-LaTeX Font Info:    Kanji font shape `JY1/gt/m/it' undefined
-(Font)              No change on input line 150.
 )
 
 ** Conference Paper **
@@ -718,7 +712,9 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[7] (out/main.aux)
+[6
+
+] (out/main.aux)
  ***********
 pLaTeX2e <2023-02-14>+1, based on
 LaTeX2e <2023-11-01> patch level 1
@@ -726,12 +722,12 @@ L3 programming layer <2024-02-20>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 4249 strings out of 474774
- 67487 string characters out of 5758801
- 1965032 words of memory out of 5000000
- 26561 multiletter control sequences out of 15000+600000
+ 4242 strings out of 474774
+ 67333 string characters out of 5758801
+ 1959032 words of memory out of 5000000
+ 26554 multiletter control sequences out of 15000+600000
  600249 words of font info for 160 fonts, out of 8000000 for 9000
  929 hyphenation exceptions out of 8191
- 56i,12n,65p,481b,476s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 56i,12n,65p,827b,476s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on out/main.dvi (7 pages, 60120 bytes).
+Output written on out/main.dvi (6 pages, 46040 bytes).

@@ -98,7 +98,8 @@ human activity recognition, inertial measurement unit, continulal learning
 \label{sec:introduction}
 
 Human activity recognition (HAR) aims to classify daily human activities based on sensor data and has gained attention in recent years~\cite{lara2012survey, attal2015physical, kulsoom2022review}.
-Among various sensing modalities, inertial measurement unit (IMU)-based HAR has been widely adopted for applications such as smart homes~\cite{du2019novel}, healthcare~\cite{schrader2020advanced}, input interfaces~\cite{hsiao2017design}, sports training~\cite{haladjian2020sensor}, and fall detection~\cite{hassan2019smartphone}.
+Among various sensing modalities, inertial measurement unit (IMU)-based HAR has been widely adopted for applications such as smart homes~\cite{du2019novel}, healthcare~\cite{schrader2020advanced}, and input interfaces~\cite{hsiao2017design}, 
+% sports training~\cite{haladjian2020sensor}, and fall detection~\cite{hassan2019smartphone}.
 As these applications are increasingly used over extended periods~\cite{hiremath2023lifespan}, HAR systems must adapt to new user behaviors and evolving activity classes~\cite{hiremath2022bootstrapping}.
 A naive retraining approach using all available data is often infeasible due to resource constraints and privacy concerns~\cite{han2021deep}.
 When using plasticity-focused methods like fine-tuning, the model often suffers from catastrophic forgetting~\cite{french1999catastrophic, mccloskey1989catastrophic, tian2024survey}, where performance on prior tasks deteriorates due to overfitting to new data.
@@ -134,13 +135,10 @@ Our research questions are as follows:
 
 
 \section{Problem Definitions and Scenarios}
-
-
 In a CL scenario, tasks are assumed to arrive sequentially, and the model $f(\boldsymbol{x}; \theta)$ is incrementally updated upon the arrival of each new task, where $\boldsymbol{x}$ denotes the input data and $\theta$ represents the model parameters.
 Formally, the sequence of tasks is defined as $T = \{\tau^{1}, \tau^{2}, ..., \tau^{N}\}$, where each task $\tau^t$ ($t \in \{1, ..., N\}$) is associated with a dataset $D^{t} = \{(x_{i}^{t}, y_{i}^{t}) |y_{i}^{t} \in Y^{t}\}_{i=1}^{N_{t}}$ and a corresponding label space $Y^{t}$.
 Each input $x_i^t$ is sampled from a task-specific input domain $\mathcal{X}^t$, and each label $y_i^t$ belongs to the respective label space $Y^t$.
 We denote the model before training on task $\tau^{t}$ as $f_{\theta_{t}}$, and the model after optimization as $f_{\theta_{t}^{*}}$.
-
 The formal definitions of the continual learning scenarios considered in this study are as follows:
 \begin{itemize}
     \item CIL:
@@ -172,122 +170,123 @@ The second is the offline setting, where the model is trained using data from al
 This serves as an upper-bound performance reference, as it assumes access to the entire dataset across tasks.
 
 \subsection{Continual Learning Methods}
-\subsubsection{Regularization-based methods}
-We selected four representative regularization-based CL methods for comparison: Learning without Forgetting (LwF)~\cite{li2017learning}, Elastic Weight Consolidation (EWC)~\cite{kirkpatrick2017overcoming}, Memory Aware Synapses (MAS)~\cite{aljundi2018memory}, and Synaptic Intelligence (SI)~\cite{zenke2017continual}.
-These methods mitigate catastrophic forgetting by incorporating additional loss terms that constrain updates to important model parameters based on knowledge acquired from previous tasks.
+As a continual learning method, We selected nine representative continual learning methods for comparison: four regularization-based methods--Learning without Forgetting (LwF)~\cite{li2017learning}, Elastic Weight Consolidation (EWC)~\cite{kirkpatrick2017overcoming}, Memory Aware Synapses (MAS)~\cite{aljundi2018memory}, and Synaptic Intelligence (SI)~\cite{zenke2017continual}--and five replay-based methods--Experienced Replay (ER)~\cite{rolnick2019experience}, Dark Experience Replay (DER)~\cite{lopez2017gradient}, Fast Incremental Classifier and Representation Learning (FastICARL)~\cite{kwon2021fasticarl}, Adversarial Shapley value Experience Replay (ASER)~\cite{shim2021online}, and Generative Replay (GR)~\cite{shin2017continual}.
+% \subsubsection{Regularization-based methods}
+% We selected four representative regularization-based CL methods for comparison: Learning without Forgetting (LwF)~\cite{li2017learning}, Elastic Weight Consolidation (EWC)~\cite{kirkpatrick2017overcoming}, Memory Aware Synapses (MAS)~\cite{aljundi2018memory}, and Synaptic Intelligence (SI)~\cite{zenke2017continual}.
+% These methods mitigate catastrophic forgetting by incorporating additional loss terms that constrain updates to important model parameters based on knowledge acquired from previous tasks.
 
-LwF~\cite{li2017learning} mitigates catastrophic forgetting by leveraging a knowledge distillation (KD) loss as a regularization term. 
-Specifically, LwF encourages the current model $f_{\boldsymbol{\theta}}$ to retain knowledge from previous tasks by minimizing the discrepancy between its output and that of a frozen model $f_{\boldsymbol{\theta}^*}$--trained on earlier tasks--when evaluated on the current task data.
-This is achieved in conjunction with minimizing the standard cross-entropy (CE) loss $\mathcal{L}_{\text{CE}}$ for the current task labels.
-In this study, we adopt the adaptive-weight variant of LwF, where the contribution of the CE and KD losses varies depending on the number of tasks seen so far.
-The total loss function for task $\tau^t$ is defined as:
+% LwF~\cite{li2017learning} mitigates catastrophic forgetting by leveraging a knowledge distillation (KD) loss as a regularization term. 
+% Specifically, LwF encourages the current model $f_{\boldsymbol{\theta}}$ to retain knowledge from previous tasks by minimizing the discrepancy between its output and that of a frozen model $f_{\boldsymbol{\theta}^*}$--trained on earlier tasks--when evaluated on the current task data.
+% This is achieved in conjunction with minimizing the standard cross-entropy (CE) loss $\mathcal{L}_{\text{CE}}$ for the current task labels.
+% In this study, we adopt the adaptive-weight variant of LwF, where the contribution of the CE and KD losses varies depending on the number of tasks seen so far.
+% The total loss function for task $\tau^t$ is defined as:
 
-\begin{eqnarray}
-    \mathcal{L} &=& \frac{1}{t} \cdot \mathcal{L}_{\text{CE}} + \left(1 - \frac{1}{t} \right) \cdot \lambda \cdot \mathcal{L}_{\text{KD}^{t}}  \\
-    \mathcal{L}_{\mathrm{KD}}^{t} &=& - \sum_{c \in Y^{1:t-1}} \tilde{y}^{t-1}_{c} \log \tilde{y}^{t}_{c} \\
-    \tilde{y}^{t-1}_{i} &=& \mathrm{Softmax}(f_{\theta_{t-1}^{*}}(x_{i}^{t}) / T), \nonumber \\
-    \tilde{y}^{t}_{i} &=& \mathrm{Softmax}(f_{\theta_{t}}(x_{i}^{t}) / T) 
-\end{eqnarray}
-where $T$ is the temperature parameter used for smoothing the output distributions, and is set to 2 following~\cite{mai2022online}.
+% \begin{eqnarray}
+%     \mathcal{L} &=& \frac{1}{t} \cdot \mathcal{L}_{\text{CE}} + \left(1 - \frac{1}{t} \right) \cdot \lambda \cdot \mathcal{L}_{\text{KD}^{t}}  \\
+%     \mathcal{L}_{\mathrm{KD}}^{t} &=& - \sum_{c \in Y^{1:t-1}} \tilde{y}^{t-1}_{c} \log \tilde{y}^{t}_{c} \\
+%     \tilde{y}^{t-1}_{i} &=& \mathrm{Softmax}(f_{\theta_{t-1}^{*}}(x_{i}^{t}) / T), \nonumber \\
+%     \tilde{y}^{t}_{i} &=& \mathrm{Softmax}(f_{\theta_{t}}(x_{i}^{t}) / T) 
+% \end{eqnarray}
+% where $T$ is the temperature parameter used for smoothing the output distributions, and is set to 2 following~\cite{mai2022online}.
 
-EWC~\cite{kirkpatrick2017overcoming} addresses catastrophic forgetting by selectively constraining updates to parameters deemed important for previously learned tasks.
-The importance of each parameter is quantified using the diagonal elements of the Fisher Information Matrix (FIM), which captures the sensitivity of the loss with respect to each parameter.
-The total loss function for task $\tau^{t}$ is defined as:
-%
-\begin{equation}
- \mathcal{L} = \mathcal{L}_{\mathrm{CE}} + \frac{\lambda}{2} \sum_{c \in Y^{1:t}} F_c (\boldsymbol{\theta}_{t, c} - \boldsymbol{\theta}_{t-1, c}^{*})^2,
-\end{equation}
-%
-where $F_c$ represents the importance score of parameter $\theta_c$ computed from previous tasks, $\boldsymbol{\theta}_{t}$ is the current model parameter vector, and $\boldsymbol{\theta}_{t-1}^{*}$ is the optimized parameter vector from the previous task.
-The regularization term penalizes deviations from the previously important parameters, thereby preserving prior knowledge.
+% EWC~\cite{kirkpatrick2017overcoming} addresses catastrophic forgetting by selectively constraining updates to parameters deemed important for previously learned tasks.
+% The importance of each parameter is quantified using the diagonal elements of the Fisher Information Matrix (FIM), which captures the sensitivity of the loss with respect to each parameter.
+% The total loss function for task $\tau^{t}$ is defined as:
+% %
+% \begin{equation}
+%  \mathcal{L} = \mathcal{L}_{\mathrm{CE}} + \frac{\lambda}{2} \sum_{c \in Y^{1:t}} F_c (\boldsymbol{\theta}_{t, c} - \boldsymbol{\theta}_{t-1, c}^{*})^2,
+% \end{equation}
+% %
+% where $F_c$ represents the importance score of parameter $\theta_c$ computed from previous tasks, $\boldsymbol{\theta}_{t}$ is the current model parameter vector, and $\boldsymbol{\theta}_{t-1}^{*}$ is the optimized parameter vector from the previous task.
+% The regularization term penalizes deviations from the previously important parameters, thereby preserving prior knowledge.
 
-MAS~\cite{aljundi2018memory} is a regularization-based approach inspired by neuroplasticity, which quantifies the importance of each parameter based on its contribution to the model's output.
-Unlike EWC, which relies on the FIM, MAS estimates importance by computing the magnitude of the gradients of the model outputs with respect to the parameters.
-The total loss function for task $\tau^t$ is given by:
-\begin{eqnarray}
-    \mathcal{L} &=& \mathcal{L}_{\mathrm{CE}} + {\lambda} \sum_{c \in Y^{1:t}} \Omega_c (\boldsymbol{\theta}_{t, c} - \boldsymbol{\theta}_{t-1, c}^{*})^2,\\
-    \Omega_c  &=& \frac{1}{N} \sum_{i=1}^{N} || \frac{\partial (f (x_i; \theta))}{\partial \theta_c}||,
-\end{eqnarray}
-where $\Omega_c$ denotes the estimated importance of parameter $\theta_c$ and is computed as the average norm of the gradients over $N$ samples.
-This regularization discourages large updates to parameters that significantly influence the model's predictions, thereby preserving knowledge acquired from previous tasks.
+% MAS~\cite{aljundi2018memory} is a regularization-based approach inspired by neuroplasticity, which quantifies the importance of each parameter based on its contribution to the model's output.
+% Unlike EWC, which relies on the FIM, MAS estimates importance by computing the magnitude of the gradients of the model outputs with respect to the parameters.
+% The total loss function for task $\tau^t$ is given by:
+% \begin{eqnarray}
+%     \mathcal{L} &=& \mathcal{L}_{\mathrm{CE}} + {\lambda} \sum_{c \in Y^{1:t}} \Omega_c (\boldsymbol{\theta}_{t, c} - \boldsymbol{\theta}_{t-1, c}^{*})^2,\\
+%     \Omega_c  &=& \frac{1}{N} \sum_{i=1}^{N} || \frac{\partial (f (x_i; \theta))}{\partial \theta_c}||,
+% \end{eqnarray}
+% where $\Omega_c$ denotes the estimated importance of parameter $\theta_c$ and is computed as the average norm of the gradients over $N$ samples.
+% This regularization discourages large updates to parameters that significantly influence the model's predictions, thereby preserving knowledge acquired from previous tasks.
 
-SI~\cite{zenke2017continual} addresses catastrophic forgetting by penalizing changes to parameters that were important for solving previous tasks.
-Similar to MAS, SI estimates the importance of each parameter based on its historical contribution to reducing the loss. Unlike methods that rely on second-order information, SI computes importance online during training by tracking the product of the gradient and the parameter update.
-The loss function for task $\tau^t$ is defined as:
-%
-\begin{eqnarray}
-    \mathcal{L} &=& \mathcal{L}_{\mathrm{CE}} + {\lambda} \sum_{c \in Y^{1:t}} \omega_c (\boldsymbol{\theta}_{t, c} - \boldsymbol{\theta}_{t-1, c}^{*})^2,
-\end{eqnarray}
-%
-where $\omega_c$ represents the estimated importance of parameter $\theta_c$ and is computed as:
-%
-\begin{eqnarray}
-    \omega_c = \sum_{t} \frac{g_c^{(t)} \cdot \Delta \theta_c^{(t)}}{(\Delta \theta_c^{(t)})^2 + \epsilon},
-\end{eqnarray}
-%
-with $g_c^{(t)}$ denoting the gradient of the loss with respect to parameter $\theta_c$ at training step $t$, $\Delta \theta_c^{(t)}$ the corresponding parameter update, and $\epsilon$ a small constant added for numerical stability.
-This approach allows SI to adaptively preserve important knowledge while enabling learning on new tasks.
+% SI~\cite{zenke2017continual} addresses catastrophic forgetting by penalizing changes to parameters that were important for solving previous tasks.
+% Similar to MAS, SI estimates the importance of each parameter based on its historical contribution to reducing the loss. Unlike methods that rely on second-order information, SI computes importance online during training by tracking the product of the gradient and the parameter update.
+% The loss function for task $\tau^t$ is defined as:
+% %
+% \begin{eqnarray}
+%     \mathcal{L} &=& \mathcal{L}_{\mathrm{CE}} + {\lambda} \sum_{c \in Y^{1:t}} \omega_c (\boldsymbol{\theta}_{t, c} - \boldsymbol{\theta}_{t-1, c}^{*})^2,
+% \end{eqnarray}
+% %
+% where $\omega_c$ represents the estimated importance of parameter $\theta_c$ and is computed as:
+% %
+% \begin{eqnarray}
+%     \omega_c = \sum_{t} \frac{g_c^{(t)} \cdot \Delta \theta_c^{(t)}}{(\Delta \theta_c^{(t)})^2 + \epsilon},
+% \end{eqnarray}
+% %
+% with $g_c^{(t)}$ denoting the gradient of the loss with respect to parameter $\theta_c$ at training step $t$, $\Delta \theta_c^{(t)}$ the corresponding parameter update, and $\epsilon$ a small constant added for numerical stability.
+% This approach allows SI to adaptively preserve important knowledge while enabling learning on new tasks.
 
 
-\subsubsection{Replay-based methods}
-We selected five representative replay-based methods for comparison: Experienced Replay (ER)~\cite{rolnick2019experience}, Dark Experience Replay (DER)~\cite{lopez2017gradient}, Fast Incremental Classifier and Representation Learning (FastICARL)~\cite{kwon2021fasticarl}, Adversarial Shapley value Experience Replay (ASER)~\cite{shim2021online}, and Generative Replay (GR)~\cite{shin2017continual}.
+% \subsubsection{Replay-based methods}
+% We selected five representative replay-based methods for comparison: Experienced Replay (ER)~\cite{rolnick2019experience}, Dark Experience Replay (DER)~\cite{lopez2017gradient}, Fast Incremental Classifier and Representation Learning (FastICARL)~\cite{kwon2021fasticarl}, Adversarial Shapley value Experience Replay (ASER)~\cite{shim2021online}, and Generative Replay (GR)~\cite{shin2017continual}.
 
-ER~\cite{rolnick2019experience} is a fundamental replay-based method in which a fixed-size memory buffer is used to store samples from previous tasks.
-During training on a new task, the model is updated using a combination of current task data and replayed samples drawn from the memory buffer.
-In our implementation, we adopted random sampling strategies for both memory retrieval and memory update, consistent with the original ER framework.
-The overall loss function used in task $\tau^t$ is defined as:
-%
-\begin{eqnarray}
-    \mathcal{L} 
-    = \mathcal{L}_{\mathrm{CE}} 
-    + \mathcal{L}_{\mathrm{Buffer}},
-\end{eqnarray}
-%
-where $\mathcal{L}_{\mathrm{Buffer}}$ denotes the cross-entropy loss computed on the replayed samples from the memory buffer.
+% ER~\cite{rolnick2019experience} is a fundamental replay-based method in which a fixed-size memory buffer is used to store samples from previous tasks.
+% During training on a new task, the model is updated using a combination of current task data and replayed samples drawn from the memory buffer.
+% In our implementation, we adopted random sampling strategies for both memory retrieval and memory update, consistent with the original ER framework.
+% The overall loss function used in task $\tau^t$ is defined as:
+% %
+% \begin{eqnarray}
+%     \mathcal{L} 
+%     = \mathcal{L}_{\mathrm{CE}} 
+%     + \mathcal{L}_{\mathrm{Buffer}},
+% \end{eqnarray}
+% %
+% where $\mathcal{L}_{\mathrm{Buffer}}$ denotes the cross-entropy loss computed on the replayed samples from the memory buffer.
 
-DER~\cite{lopez2017gradient} extends the standard ER framework by incorporating a KD loss.
-Like ER, DER employs random sampling strategies for both memory retrieval and update.
-In addition to the CE loss on buffered samples, DER introduces a distillation loss that encourages the current model to mimic the output of the previous model on the same buffered inputs.
-The overall loss function is defined as:
-%
-\begin{eqnarray}
-    \mathcal{L} = 
-    \mathcal{L}_{\mathrm{CE}}
-    + \frac{1}{2} \cdot \mathcal{L}_{\mathrm{Buffer}}
-    + \frac{1}{2} \cdot \mathcal{L}_{\mathrm{Buffer_{KD}}},
-\end{eqnarray}
-%
-where $\mathcal{L}_{\mathrm{Buffer}}$ denotes the CE loss on memory samples, and $\mathcal{L}_{\mathrm{Buffer_{KD}}}$ represents the KD loss computed with respect to the soft targets (i.e., logits or softmax outputs) stored in the buffer.
+% DER~\cite{lopez2017gradient} extends the standard ER framework by incorporating a KD loss.
+% Like ER, DER employs random sampling strategies for both memory retrieval and update.
+% In addition to the CE loss on buffered samples, DER introduces a distillation loss that encourages the current model to mimic the output of the previous model on the same buffered inputs.
+% The overall loss function is defined as:
+% %
+% \begin{eqnarray}
+%     \mathcal{L} = 
+%     \mathcal{L}_{\mathrm{CE}}
+%     + \frac{1}{2} \cdot \mathcal{L}_{\mathrm{Buffer}}
+%     + \frac{1}{2} \cdot \mathcal{L}_{\mathrm{Buffer_{KD}}},
+% \end{eqnarray}
+% %
+% where $\mathcal{L}_{\mathrm{Buffer}}$ denotes the CE loss on memory samples, and $\mathcal{L}_{\mathrm{Buffer_{KD}}}$ represents the KD loss computed with respect to the soft targets (i.e., logits or softmax outputs) stored in the buffer.
 
-FastICARL~\cite{kwon2021fasticarl} is a computationally efficient variant of the original iCaRL method~\cite{rebuffi2017icarl}, a class-incremental learning approach that integrates exemplar memory with a nearest-mean-of-exemplars classifier.
-FastICARL addresses the high computational cost of iCaRL by replacing its $k$-nearest neighbor ($k$-NN)–based exemplar selection with a more efficient max-heap–based strategy.
-The model is trained by minimizing the standard CE loss over the combined set of current task data and stored exemplars, along with a KD loss:
-%
-\begin{equation}
-    \mathcal{L} = \mathcal{L}_{\mathrm{CE}} + \lambda \cdot \mathcal{L}_{\mathrm{Buffer_{KD}}}.
-\end{equation}
+% FastICARL~\cite{kwon2021fasticarl} is a computationally efficient variant of the original iCaRL method~\cite{rebuffi2017icarl}, a class-incremental learning approach that integrates exemplar memory with a nearest-mean-of-exemplars classifier.
+% FastICARL addresses the high computational cost of iCaRL by replacing its $k$-nearest neighbor ($k$-NN)–based exemplar selection with a more efficient max-heap–based strategy.
+% The model is trained by minimizing the standard CE loss over the combined set of current task data and stored exemplars, along with a KD loss:
+% %
+% \begin{equation}
+%     \mathcal{L} = \mathcal{L}_{\mathrm{CE}} + \lambda \cdot \mathcal{L}_{\mathrm{Buffer_{KD}}}.
+% \end{equation}
 
-ASER~\cite{shim2021online} is a replay-based CL method that prioritizes samples in the memory buffer based on their Shapley values.
-This approach aims to identify and replay samples that are not only representative of previous classes but also likely to interfere with the learning of new incoming data.
-ASER achieves this by computing adversarial Shapley values (ASV), which quantify the trade-off between cooperative and adversarial contributions of each sample to model performance under distributional shifts or adversarial scenarios.
-%
-\begin{equation}
-    \text{ASV}(i) = \frac{1}{|S_{\text{sub}}|} \sum_{j \in S_{\text{sub}}} s_j(i) 
-    - \frac{1}{|B|} \sum_{k \in B} s_k(i),
-\end{equation}
-%
-where $S_{\text{sub}}$ denotes a class-balanced subset of the replay buffer, $B$ represents the current memory buffer, and $s_j(i)$ is the Shapley value of sample $i$ with respect to sample $j$.
-The first term captures the cooperative contribution of sample $i$ to the subset $S_{\text{sub}}$, while the second term measures its interference with the current batch $B$.
-Due to the computational complexity of exact Shapley value estimation, ASV is typically approximated using $k$-nearest neighbors.
-In this study, we follow~\cite{qiao2024class} and set $k=3$.
+% ASER~\cite{shim2021online} is a replay-based CL method that prioritizes samples in the memory buffer based on their Shapley values.
+% This approach aims to identify and replay samples that are not only representative of previous classes but also likely to interfere with the learning of new incoming data.
+% ASER achieves this by computing adversarial Shapley values (ASV), which quantify the trade-off between cooperative and adversarial contributions of each sample to model performance under distributional shifts or adversarial scenarios.
+% %
+% \begin{equation}
+%     \text{ASV}(i) = \frac{1}{|S_{\text{sub}}|} \sum_{j \in S_{\text{sub}}} s_j(i) 
+%     - \frac{1}{|B|} \sum_{k \in B} s_k(i),
+% \end{equation}
+% %
+% where $S_{\text{sub}}$ denotes a class-balanced subset of the replay buffer, $B$ represents the current memory buffer, and $s_j(i)$ is the Shapley value of sample $i$ with respect to sample $j$.
+% The first term captures the cooperative contribution of sample $i$ to the subset $S_{\text{sub}}$, while the second term measures its interference with the current batch $B$.
+% Due to the computational complexity of exact Shapley value estimation, ASV is typically approximated using $k$-nearest neighbors.
+% In this study, we follow~\cite{qiao2024class} and set $k=3$.
 
-GR~\cite{shin2017continual} is a replay-based CL method that synthesizes pseudo-samples resembling previous task data using a generative model.
-These generated samples are then replayed alongside new task data during training to mitigate catastrophic forgetting.
-In GR, a generator $g_\phi $ and a learner $f_\theta$ are trained jointly.
-At each task step, the generator from the previous task generates synthetic samples, while the learner assigns pseudo-labels to these samples.
-The model is then trained on a combination of the generated data and the current task data.
-After updating the learner, the generator is also retrained to reflect the updated knowledge.
-In this study, we adopt TimeVAE~\cite{desai2021timevae} as the generative model, which is well-suited for sequential and time-series data generation.
+% GR~\cite{shin2017continual} is a replay-based CL method that synthesizes pseudo-samples resembling previous task data using a generative model.
+% These generated samples are then replayed alongside new task data during training to mitigate catastrophic forgetting.
+% In GR, a generator $g_\phi $ and a learner $f_\theta$ are trained jointly.
+% At each task step, the generator from the previous task generates synthetic samples, while the learner assigns pseudo-labels to these samples.
+% The model is then trained on a combination of the generated data and the current task data.
+% After updating the learner, the generator is also retrained to reflect the updated knowledge.
+% In this study, we adopt TimeVAE~\cite{desai2021timevae} as the generative model, which is well-suited for sequential and time-series data generation.
 
 \section{Materials}
 \begin{figure*}[t]
@@ -313,10 +312,10 @@ Sensor signals were preprocessed using sliding windows of 1.28~s and 50\% overla
 
 In this study, we evaluated two B-CIL scenarios (B-CIL1 and B-CIL2), and compared them with the CIL scenarios.
 Fig \ref{fig:scenarios} shows the detail of scenarios of each two dataset, (A) UCI-HAR and (B) USC-HAD.
-In this study, the number of tasks was set to three. 
 
-% \subsection{Number of the classes of each tasks}
-In the CIL scenario, the classes from each dataset are evenly assigned to each task to ensure that there is no overlap of classes across tasks. 
+
+\subsection{Number of the classes of each tasks}
+In this study, the number of tasks was set to three. In the CIL scenario, the classes from each dataset are evenly assigned to each task to ensure that there is no overlap of classes across tasks. 
 Consequently, in the UCI-HAR dataset, which has six classes, each task is assigned two classes, while in the USC-HAD dataset, which has twelve classes, each task is assigned four classes.
 In the B-CIL1 scenario, compared to the CIL scenario, one of the classes from the first task (Task 1) is also assigned to other tasks (Task 2 and Task 3). 
 As a result, the number of classes per task is [2, 3, 3] for the UCI-HAR dataset and [4, 5, 5] for the USC-HAD dataset.
@@ -494,8 +493,10 @@ Four replay-based methods (ER, DER, ASER, FastICARL) had an average Final Averag
 In contrast, For regularization-based method (LwF, EWC, MAS, SI), the average Final Average Accuracy was 36.13 in CIL, 70.04 in B-CIL1, and 82.94 in B-CIL2 for UCI-HAR, and 37.05 in CIL, 55.40 in B-CIL1, and 61.37 in B-CIL2 for USC-HAD.
 Among the replay-based methods, ASER achieved the highest final average accuracy in the CIL, B-CIL1, and B-CIL2 scenarios for UCI-HAR and USC-HAD. 
 
-When comparing the UCI-HAR and USC-HAD datasets, in the CIL scenario, LwF, EWC, ER, and FastICARL showed higher Final Average Accuracy on the USC-HAD dataset. However, in the B-CIL1 and B-CIL2 scenarios, the UCI-HAR dataset exhibited higher accuracy.
-This may be influenced by the fact that the UCI-HAR dataset has fewer classes per task, resulting in a higher proportion of overlapping classes in B-CIL scenarios.
+When comparing UCI-HAR and USC-HAD, CIL scenarios show higher accuracy on USC-HAD for methods such as LwF, EWC, ER, and FastICARL. 
+In contrast, B-CIL1 and B-CIL2 scenarios consistently favor UCI-HAR. 
+This is due to the higher class-level overlap in UCI-HAR: B-CIL1 includes 1/6 classes (16.7\%) versus 1/12 (8.3\%) in USC-HAD, and B-CIL2 includes 2/6 (33.3\%) versus 2/12 (16.7\%). 
+Greater overlap reinforces previously learned representations, reducing catastrophic forgetting.
 \section{Discussion}
 \subsection{Answers to Research Questions}
 \subsubsection{RQ1: Which CL methods are most effective in B-CIL scenarios for IMU-based HAR?}
@@ -508,16 +509,17 @@ Increasing the degree of class overlap in B-CIL scenarios positively impacted th
 As the number of overlapping classes increased from B-CIL1 to B-CIL2, there was a notable reduction in forgetting and an improvement in final average accuracy across most CL methods.
 In addition, the higher the proportion of overlapping classes relative to existing classes, the more pronounced the improvement in accuracy when classes overlap.
 
+
 \subsection{Limitations and Future Work}
 
 \subsubsection{Expansion to other datasets and algorithms}
-In this study, we used the UCI-HAR and USC-HAD datasets to evaluate the performance of continual learning algorithms in Blurry Class Incremental Learning (Blurry CIL) scenarios.
+In this study, we used the UCI-HAR and USC-HAD datasets to evaluate the performance of continual learning algorithms in B-CIL scenarios.
 A limitation of this study is that it considered only two datasets.
 In the future, we will extend this research to other human activity datasets to examine how the number and order of overlapping classes affect model accuracy.
 
-To the best of our knowledge, no existing studies have applied a Blurry CIL scenario to time-series data.
+To the best of our knowledge, no existing studies have applied a B-CIL scenario to time-series data.
 CIL has been explored not only for IMU data but also for other types of time-series data, such as electromyography (EMG) signals~\cite{kanoga2024deep}.
-In the future, we plan to extend the Blurry CIL setting to other types of time-series data.
+In the future, we plan to extend the B-CIL setting to other types of time-series data.
 
 As a continual learning methods, we selected four regularization-based methods (LwF, EWC, MAS, SI) and five replay-based methods (ER, ASER, DER, FastICARL, GR).
 In our study, parameter isolated methods such as Progressive Neural Networks (PNN)~\cite{rusu2016progressive} were not considered. 

@@ -13,45 +13,45 @@ Database file #1: Reference.bib
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
 
 Done.
-You've used 43 entries,
+You've used 38 entries,
             4024 wiz_defined-function locations,
-            1050 strings with 16855 characters,
-and the built_in function-call counts, 35465 in all, are:
-= -- 2770
-> -- 1077
-< -- 294
-+ -- 584
-- -- 215
-* -- 1757
-:= -- 5136
-add.period$ -- 92
-call.type$ -- 43
-change.case$ -- 42
-chr.to.int$ -- 672
-cite$ -- 43
-duplicate$ -- 2519
-empty$ -- 2785
-format.name$ -- 245
-if$ -- 8177
+            1024 strings with 15753 characters,
+and the built_in function-call counts, 31295 in all, are:
+= -- 2437
+> -- 949
+< -- 258
++ -- 517
+- -- 191
+* -- 1551
+:= -- 4526
+add.period$ -- 82
+call.type$ -- 38
+change.case$ -- 37
+chr.to.int$ -- 591
+cite$ -- 38
+duplicate$ -- 2223
+empty$ -- 2469
+format.name$ -- 216
+if$ -- 7215
 int.to.chr$ -- 0
-int.to.str$ -- 43
-missing$ -- 470
-newline$ -- 152
-num.names$ -- 43
-pop$ -- 1118
+int.to.str$ -- 38
+missing$ -- 415
+newline$ -- 137
+num.names$ -- 38
+pop$ -- 990
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 2706
+skip$ -- 2388
 stack$ -- 0
-substring$ -- 1638
-swap$ -- 2092
-text.length$ -- 70
+substring$ -- 1445
+swap$ -- 1843
+text.length$ -- 61
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 43
+type$ -- 38
 warning$ -- 0
-while$ -- 151
-width$ -- 45
-write$ -- 435
+while$ -- 130
+width$ -- 40
+write$ -- 386
 is.kanji.str$ -- 0

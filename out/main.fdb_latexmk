@@ -1,19 +1,19 @@
 # Fdb version 4
-["bibtex out/main"] 1767529458.65983 "out/main.aux" "out/main.bbl" "out/main" 1767529632.48325 0
+["bibtex out/main"] 1767604130.13053 "out/main.aux" "out/main.bbl" "out/main" 1767604425.09248 0
   "./IEEEtran.bst" 1168508629 61632 1eded68932b68cdfaf04f54eba82634b ""
   "./Reference.bib" 1766734324.48139 23022 d4b420c537c70a5c55041c4d8f75fcc2 ""
-  "out/main.aux" 1767529630.83679 6622 65e9654049b14b391b407e4b74d7807c "latex"
+  "out/main.aux" 1767604422.96091 5899 d59f077ad844d158c2787bb7697e8aff "latex"
   (generated)
   "out/main.bbl"
   "out/main.blg"
   (rewritten before read)
-["dvipdf"] 1767529631.16725 "out/main.dvi" "out/main.pdf" "out/main" 1767529632.48432 0
-  "out/main.dvi" 1767529630.83915 60120 5b44acb3369700abaee72558908f587d "latex"
+["dvipdf"] 1767604423.27271 "out/main.dvi" "out/main.pdf" "out/main" 1767604425.09353 0
+  "out/main.dvi" 1767604422.96408 46040 70dcb0b823b7235ec82037a66b500cac "latex"
   (generated)
   "out/main.pdf"
   (rewritten before read)
-["latex"] 1767529630.37043 "/Users/yamamoto/Desktop/EMBC2026/main.tex" "out/main.dvi" "main" 1767529632.48335 0
-  "/Users/yamamoto/Desktop/EMBC2026/main.tex" 1767529630.20746 43689 2ae510e02c221cba076fe7bc326e5510 ""
+["latex"] 1767604422.45833 "/Users/yamamoto/Desktop/EMBC2026/main.tex" "out/main.dvi" "main" 1767604425.09259 0
+  "/Users/yamamoto/Desktop/EMBC2026/main.tex" 1767604422.2666 44657 2fd6c5a76aeda61ccb940a7ab58ceb05 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/tfm/adobe/times/ptmb7t.tfm" 1136768653 2172 fd0c924230362ff848a33632ed45dc23 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/tfm/adobe/times/ptmbi7t.tfm" 1136768653 2228 e564491c42a4540b5ebb710a75ff306c ""
@@ -94,9 +94,9 @@
   "Figs/EMBC_Scenarios.eps" 1767100797.64755 1071434 f7711f8d31347e7ba3f7f6b4d0a204ab ""
   "Figs/EMBC_teaser.eps" 1767100801.83648 1789058 0b3d2d61be5644a7391b1977703b8234 ""
   "IEEEtran.cls" 1440654524 288304 b67b6fc6c2abb39f9b461923f5199343 ""
-  "main.tex" 1767529630.20746 43689 2ae510e02c221cba076fe7bc326e5510 ""
-  "out/main.aux" 1767529630.83679 6622 65e9654049b14b391b407e4b74d7807c "latex"
-  "out/main.bbl" 1767529458.83294 11448 2cecb8b8f0ac21092435ea16a92455f2 "bibtex out/main"
+  "main.tex" 1767604422.2666 44657 2fd6c5a76aeda61ccb940a7ab58ceb05 ""
+  "out/main.aux" 1767604422.96091 5899 d59f077ad844d158c2787bb7697e8aff "latex"
+  "out/main.bbl" 1767604130.28649 10277 27ccc7bda42df8ae5fdd95cd099296b4 "bibtex out/main"
   (generated)
   "out/main.aux"
   "out/main.dvi"

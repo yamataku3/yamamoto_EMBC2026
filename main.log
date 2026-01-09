@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.23)  6 JAN 2026 23:37
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.23)  9 JAN 2026 23:57
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -429,6 +429,11 @@ ine 64.
 
 
  <./Figs/EMBC_teaser-eps-converted-to.pdf>]
+Underfull \hbox (badness 4543) in paragraph at lines 124--128
+\OT1/ptm/m/n/10 Con-sol-i-da-tion (EWC) [25], Mem-ory Aware Synapses
+ []
+
+
 
 Package epstopdf Info: Source file: <Figs/EMBC_Scenarios.eps>
 (epstopdf)                    date: 2026-01-06 22:15:22
@@ -438,20 +443,20 @@ Package epstopdf Info: Source file: <Figs/EMBC_Scenarios.eps>
 (epstopdf)                    size: 26560 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figs/EMBC_Scenarios-eps-co
 nverted-to.pdf Figs/EMBC_Scenarios.eps>
-(epstopdf)             \includegraphics on input line 240.
+(epstopdf)             \includegraphics on input line 246.
 Package epstopdf Info: Output file is already uptodate.
 <Figs/EMBC_Scenarios-eps-converted-to.pdf, id=40, 517.935pt x 111.41624pt>
 File: Figs/EMBC_Scenarios-eps-converted-to.pdf Graphic file (type pdf)
 <use Figs/EMBC_Scenarios-eps-converted-to.pdf>
 Package pdftex.def Info: Figs/EMBC_Scenarios-eps-converted-to.pdf  used on inpu
-t line 240.
+t line 246.
 (pdftex.def)             Requested size: 505.89pt x 108.83015pt.
 
 
 [2]
 
 
-Underfull \hbox (badness 2846) in paragraph at lines 438--442
+Underfull \hbox (badness 2846) in paragraph at lines 457--461
 []\OT1/ptm/m/n/10 Among the eval-u-ated con-tin-ual learn-ing al-go-rithms,
  []
 
@@ -460,7 +465,7 @@ Underfull \hbox (badness 2846) in paragraph at lines 438--442
 [3 <./Figs/EMBC_Scenarios-eps-converted-to.pdf>]
 
 
-Underfull \hbox (badness 2050) in paragraph at lines 471--474
+Underfull \hbox (badness 2050) in paragraph at lines 490--493
 []\OT1/ptm/m/n/10 As a con-tin-ual learn-ing meth-ods, we se-lected four
  []
 
@@ -503,11 +508,11 @@ L3 programming layer <2025-01-18>
 Here is how much of TeX's memory you used:
  4376 strings out of 473190
  66578 string characters out of 5719973
- 500622 words of memory out of 5000000
+ 500660 words of memory out of 5000000
  27561 multiletter control sequences out of 15000+600000
  601885 words of font info for 121 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 56i,12n,65p,779b,306s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 56i,12n,65p,764b,306s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><c:/tex
 live/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><c:/texlive/2025
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb><c:/texlive/2025/texmf-dis
@@ -527,7 +532,7 @@ c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><c:/texlive/2025/te
 xmf-dist/fonts/type1/urw/times/utmbi8a.pfb><c:/texlive/2025/texmf-dist/fonts/ty
 pe1/urw/times/utmr8a.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmr
 i8a.pfb>
-Output written on main.pdf (6 pages, 338793 bytes).
+Output written on main.pdf (6 pages, 338972 bytes).
 PDF statistics:
  182 PDF objects out of 1000 (max. 8388607)
  100 compressed objects within 1 object stream

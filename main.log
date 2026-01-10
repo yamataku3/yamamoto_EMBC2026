@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.23)  9 JAN 2026 23:57
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.23)  10 JAN 2026 23:40
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -414,13 +414,13 @@ Package epstopdf Info: Source file: <Figs/EMBC_teaser.eps>
 (epstopdf)                    size: 77565 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figs/EMBC_teaser-eps-conve
 rted-to.pdf Figs/EMBC_teaser.eps>
-(epstopdf)             \includegraphics on input line 64.
+(epstopdf)             \includegraphics on input line 63.
 Package epstopdf Info: Output file is already uptodate.
 <Figs/EMBC_teaser-eps-converted-to.pdf, id=1, 256.96pt x 124.465pt>
 File: Figs/EMBC_teaser-eps-converted-to.pdf Graphic file (type pdf)
 <use Figs/EMBC_teaser-eps-converted-to.pdf>
 Package pdftex.def Info: Figs/EMBC_teaser-eps-converted-to.pdf  used on input l
-ine 64.
+ine 63.
 (pdftex.def)             Requested size: 245.71811pt x 119.02164pt.
 
 
@@ -456,18 +456,8 @@ t line 246.
 [2]
 
 
-Underfull \hbox (badness 2846) in paragraph at lines 457--461
-[]\OT1/ptm/m/n/10 Among the eval-u-ated con-tin-ual learn-ing al-go-rithms,
- []
-
-
 
 [3 <./Figs/EMBC_Scenarios-eps-converted-to.pdf>]
-
-
-Underfull \hbox (badness 2050) in paragraph at lines 490--493
-[]\OT1/ptm/m/n/10 As a con-tin-ual learn-ing meth-ods, we se-lected four
- []
 
 
 
@@ -508,7 +498,7 @@ L3 programming layer <2025-01-18>
 Here is how much of TeX's memory you used:
  4376 strings out of 473190
  66578 string characters out of 5719973
- 500660 words of memory out of 5000000
+ 500982 words of memory out of 5000000
  27561 multiletter control sequences out of 15000+600000
  601885 words of font info for 121 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -532,7 +522,7 @@ c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><c:/texlive/2025/te
 xmf-dist/fonts/type1/urw/times/utmbi8a.pfb><c:/texlive/2025/texmf-dist/fonts/ty
 pe1/urw/times/utmr8a.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmr
 i8a.pfb>
-Output written on main.pdf (6 pages, 338972 bytes).
+Output written on main.pdf (6 pages, 339821 bytes).
 PDF statistics:
  182 PDF objects out of 1000 (max. 8388607)
  100 compressed objects within 1 object stream

@@ -45,42 +45,42 @@ In the future, we aim to extend our study to additional datasets and explore mor
 
 \section{Introduction}
 \label{sec:introduction}
-Human activity recognition (HAR) aims to classify daily human activities based on sensor data and has gained attention in recent years~\cite{lara2012survey, attal2015physical, kulsoom2022review}.
-Among various sensing modalities, inertial measurement unit (IMU)-based HAR has been widely adopted for applications such as smart homes~\cite{du2019novel}, healthcare~\cite{schrader2020advanced}, and input interfaces~\cite{hsiao2017design}, 
-% sports training~\cite{haladjian2020sensor}, and fall detection~\cite{hassan2019smartphone}.
-As these applications are increasingly used over extended periods~\cite{hiremath2023lifespan}, HAR systems must adapt to new user behaviors and evolving activity classes~\cite{hiremath2022bootstrapping}.
-A naive retraining approach using all available data is often infeasible due to resource constraints and privacy concerns~\cite{han2021deep}.
-When using plasticity-focused methods like fine-tuning, the model often suffers from catastrophic forgetting~\cite{french1999catastrophic, mccloskey1989catastrophic, tian2024survey}, where performance on prior tasks deteriorates due to overfitting to new data.
-Consequently, there is growing interest in continual learning (CL) methods that allow updating models using only data from newly introduced classes.
-CL approaches--typically categorized into regularization, replay, and parameter isolation--enable models to learn incrementally without forgetting previous tasks~\cite{de2021continual, chen2018lifelong}.
+\textcolor{red}{Human activity recognition (HAR) aims to classify daily human activities based on sensor data and has attracted significant attention in recent years~\cite{lara2012survey,attal2015physical,kulsoom2022review}.
+Among various sensing modalities, inertial measurement unit (IMU)-based HAR has been widely adopted for applications such as smart homes~\cite{du2019novel}, healthcare~\cite{schrader2020advanced}, and input interfaces~\cite{hsiao2017design}.
+As these applications are increasingly deployed over extended periods~\cite{hiremath2023lifespan}, HAR systems must adapt to evolving user behaviors and newly introduced activity classes~\cite{hiremath2022bootstrapping}.}
 
-In CL, there are various problem scenarios depending on how tasks arrive sequentially.
-One of the scenario is class incremental learning (CIL), in which the model must learn an increasing number of classes over time.
-In the typical CIL scenario, the model learn them without task labels and with no class repetition across tasks (Fig.~\ref{fig:fig1}(A)).
-However, in real-world systems, data is not always collected under conditions where classes are fully independent across tasks.
-Blurry class incremental learning (B-CIL) relaxes the constraint of disjoint classes across tasks, allowing class overlap and more close to real-world usage scenarios (Fig.~\ref{fig:fig1}(B)).
+\textcolor{red}{A naïve retraining approach using all available data is often impractical due to resource constraints and privacy concerns~\cite{han2021deep}.
+Moreover, plasticity-focused methods such as fine-tuning typically suffer from catastrophic forgetting~\cite{french1999catastrophic, mccloskey1989catastrophic, tian2024survey}, where performance on previously learned tasks deteriorates as the model overfits to new data.
+Consequently, there is growing interest in continual learning (CL) methods, which enable models to learn incrementally without forgetting prior knowledge~\cite{de2021continual, chen2018lifelong}.
+CL methods are generally categorized into three families: regularization-based, replay-based, and parameter isolation methods.}
+
+\textcolor{red}{Within CL, different problem scenarios are defined based on how tasks arrive sequentially.
+One widely studied scenario is class-incremental learning (CIL), where the model must learn an increasing number of classes over time without task labels and with no class repetition across tasks (Fig.~\ref{fig:fig1}(A)).
+However, real-world systems rarely operate under conditions where classes are completely disjoint across tasks.
+Blurry class-incremental learning (B-CIL) relaxes this constraint by allowing partial class overlap between tasks, making it more representative of practical deployment scenarios (Fig.~\ref{fig:fig1}(B)).}
 %
 \begin{figure}[t]
     \includegraphics[width=\linewidth]{Figs/EMBC_teaser.eps}
-    \caption{Overview of continual learning scenarios: (A)~CIL and (B)~B-CIL.}
+    \caption{\textcolor{red}{Overview of (A)~class-incremental learning and (B)~blurry class-incremental learning scenarios.}}
     \label{fig:fig1}
 \end{figure}
 
-For IMU-based HAR, various studies have explored CIL scenarios~\cite{leite2022resource,kann2023evaluation,kwon2021exploring,qiao2024class,adaimi2022lifelong,schiemer2023online,fan2024ts,wu2025ptms}, but most prior work assumes that classes are completely disjoint across tasks. 
-The only related work is by Zhang et al., which evaluates a setting where one new class is added at each task and later each class reappears once~\cite{zhang2021harmi}.
-However, in real-world scenarios, old and new classes may coexist within the same task. 
-No prior work has systematically examined B-CIL scenarios in which classes overlap across tasks.
+\textcolor{red}{For IMU-based HAR, previous studies have explored CIL scenarios~\cite{leite2022resource,kann2023evaluation,kwon2021exploring,qiao2024class,adaimi2022lifelong,schiemer2023online,fan2024ts,wu2025ptms}, but most assume that classes are fully disjoint.
+The only related work by Zhang et al.~\cite{zhang2021harmi} considers a setting where one new class is added at each task and later reappears once.
+However, in real-world scenarios, old and new classes often coexist within the same task. 
+To date, no systematic investigation has addressed B-CIL scenarios with varying degree of class overlap.}
 
-In this study, we evaluate nine continual learning methods under B-CIL scenarios with varying degrees of class overlap.
-We conduct experiments on two public datasets: the University of California Human Activity Recognition (UCI-HAR) and the University of Southern California Human Activity Dataset (USC-HAD).
-Our results demonstrate that replay-based methods outperform regularization-based ones, and that increasing class overlap improves performance.
+\textcolor{red}{In this study, we evaluate nine CL methods under B-CIL scenarios with different levels of class overlap.
+Experiments are conducted on two publicly available datasets: the University of California Human Activity Recognition (UCI-HAR) and the University of Southern California Human Activity Dataset (USC-HAD).
+Our findings reveal that replay-based methods consistently outperform regularization-based ones and that increasing class overlap improves performance.}
 
-Our research questions are as follows:
+\textcolor{red}{The research questions addressed in this work are as follows:
+%
 \begin{itemize}
     \item \textbf{RQ1:} Which CL methods are most effective in B-CIL scenarios for IMU-based HAR?
-    \item \textbf{RQ2:} How does the degree of class overlap affect the performance of CL methods in B-CIL scenarios?
+    \item \textbf{RQ2:} How does the degree of class overlap influence the performance of CL methods in B-CIL scenarios?
 \end{itemize}
-
+}
 
 \section{Continual Learning Framework and Scenario Definitions}
 \textcolor{red}{In a CL scenario, tasks arrive sequentially, and the model $f(\boldsymbol{x}; \theta)$ is incrementally updated upon the arrival of each new task, where $\boldsymbol{x}$ denotes the input data and $\theta$ represents the model parameters.
@@ -116,8 +116,8 @@ Following the convolutional layer, the block includes a ReLU activation function
 
 \subsection{Baselines}
 \textcolor{red}{As baselines, we considered two approaches.
-The first is a naïve fine-tuning strategy, in which the model is incrementally updated on each new task without applying any CL methods, serving as a reference point for catastrophic forgetting.
-The second is an offline setting, where the model is trained using data from all tasks simultaneously.
+The first is a naïve fine-tuning strategy (Naïve), in which the model is incrementally updated on each new task without applying any CL methods, serving as a reference point for catastrophic forgetting.
+The second is an offline setting (Offline), where the model is trained using data from all tasks simultaneously.
 This represents an upper-bound performance reference, as it assumes full access to the entire dataset across tasks.}
 
 \subsection{Continual Learning Methods}
@@ -244,7 +244,7 @@ This represents an upper-bound performance reference, as it assumes full access 
 %
 \begin{figure*}[t]
     \includegraphics[width=\linewidth]{Figs/EMBC_Scenarios.eps}
-    \caption{Three configurations of CIL and B-CIL scenarios for two datasets: (A)~UCI-HAR and (B)~USC-HAD datasets.}
+    \caption{\textcolor{red}{Three configurations of CIL and B-CIL scenarios for two datasets: (A)~UCI-HAR and (B)~USC-HAD datasets.}}
     \label{fig:scenarios}
 \end{figure*}
 %
@@ -305,20 +305,23 @@ Let $a_{i, j}$ denote the average classification accuracy on Task~$j$ after the 
 \textcolor{red}{This metric measures the average accuracy on the current task immediately after training on that task:
 %
 \begin{equation}
-    \mathcal{A}_{cur} = \frac{1}{T} \sum_{i=1}^{T} a_{i, i}.
+    \mathcal{A}_{\mathrm{cur}} = \frac{1}{T} \sum_{i=1}^{T} a_{i, i}.
 \end{equation}
 }
 
 \subsection{Learning Protocol}
+% 全体的にここの記述が再現しにくそうな印象
 \textcolor{red}{For the training configuration, Cross-Entropy Loss was used as the objective function, and the OneCycle learning rate scheduler was employed.
 The model was trained for 100~epochs.
 Early stopping was applied to the regularization-based methods and baseline method, with a patience parameter of 5.}
 
 \textcolor{red}{For all training methods, the batch size, maximum learning rate, and learning rate adjustment strategy were optimized using grid search.
 The search range for batch size was [32, 64, 128], and for the initial learning rate, it was [0.01, 0.001, 0.0001].
-For the learning rate adjustment strategy, three approaches were evaluated: (1)~reducing the learning rate by a factor of 0.1 every 10~epochs, (2)~reducing it by a factor of 0.1 every 25~epochs, and (3)~using only the scheduler without manual adjustments.
-Hyperparameter optimization was performed using validation data from Task~1 exclusively.
-The final hyperparameters for each classification algorithm are summarized in Table~\ref{tab:hyperparameter}.}
+For the learning rate adjustment strategy, three approaches were evaluated: (1)~reducing the learning rate by a factor of 0.1 every 10~epochs, (2)~reducing it by a factor of 0.1 every 25~epochs, and (3)~using only the scheduler without manual adjustments.}
+
+\textcolor{red}{Hyperparameter optimization was performed exclusively using validation data from Task~1.}
+\textcolor{blue}{The final hyperparameters employed in this study are summarized in Table~\ref{tab:hyperparameter}.}
+% この部分要確認
 
 \subsection{Implementation}
 \textcolor{red}{All methods were implemented in Python 3.10.10 and PyTorch 1.13.1.
@@ -331,12 +334,11 @@ Experiments were conducted on a machine running Ubuntu 22.04, equipped with four
 %
 \begin{table}[t]
     \centering
-    \caption{Hyperparameter grid search for the continual learning methods}
-
+    \caption{\textcolor{blue}{Hyperparameters employed in this study for CL methods.}}
     \resizebox{0.95\linewidth}{!}{
     \begin{tabular}{c  c  c }
        \toprule
-       Method & parameter & Search \\ 
+       Method & Hyperparameter & Search range\\ 
        \midrule
         LwF & $\lambda$ & 1, 0.1, 0.01, 0.001, 0.0001 \\
         \midrule
@@ -360,10 +362,10 @@ Experiments were conducted on a machine running Ubuntu 22.04, equipped with four
 %
 \begin{table*}[!ht]
     \centering
-    \caption{Results of the continual learning methods in the UCI-HAR and USC-HAD datasets}
+    \caption{\textcolor{red}{Results of baseline and CL methods on UCI-HAR and USC-HAD datasets.}}
     \begin{tabular}{c c c cc|cccc|ccccc}
         \toprule
-        Dataset & Metrics & Scenario & Naive & Offline & LwF & EWC & MAS & SI & ER & DER & ASER & FastICARL & GR \\
+        Dataset & Metrics & Scenario & Naïve & Offline & LwF & EWC & MAS & SI & ER & DER & ASER & FastICARL & GR \\
         \midrule
 
         % === A_T ===
@@ -440,64 +442,66 @@ Experiments were conducted on a machine running Ubuntu 22.04, equipped with four
 %     \label{tbl:main_results}
 % \end{table*}
 % Table \ref{tbl:main_results_UCI_HAR} and Table \ref{tbl:main_results_USC_HAD} 
-Table~\ref{tbl:main_results} shows the results of the continual learning methods on the UCI-HAR and USC-HAD datasets.
-% \subsection{Final Average Accuracy}
-When comparing the thrre scenarios in the two datasets, CIL had the lowest final average accuracy, followed by B-CIL1, with B-CIL2 having the highest, except for FastICARL and GR in USC-HAD.
-In terms of Final Average Forgetting, CIL exhibited the highest level of forgetting. As the number of Overlap classes increased, the amount of forgetting decreased, with B-CIL2 showing the lowest forgetting (except for ASER in USC-HAD).
-Average Current Accuracy varied across algorithms, showing no consistent trend.
-These results indicate that increasing the number of overlap classes helps reduce forgetting and ultimately improves final accuracy.
+\textcolor{red}{Table~\ref{tbl:main_results} presents the performance of the baseline and CL methods on the UCI-HAR and USC-HAD datasets.
+When comparing the three scenarios across both datasets, CIL consistently achieved the lowest Final Average Accuracy $\mathcal{A}_{T}$, followed by B-CIL1, while B-CIL2 yielded the highest accuracy--except for FastICARL and GR on USC-HAD.
+Regarding Final Average Forgetting $\mathcal{F}_{T}$, CIL exhibited the greatest degree of forgetting.
+As the number of overlapping classes increased, forgetting decreased, with B-CIL2 showing the lowest forgetting (except for FastICARL on USC-HAD).
+Average Learning Accuracy $\mathcal{A}_{\mathrm{cur}}$ varied across methods without a clear trend.
+Overall, these results indicate that increasing the number of overlapping classes mitigates forgetting and improves final accuracy.}
 
-We compared the final average accuracy of continual learning algorithms with the baseline method, Naive.
-In the CIL scenario, most continual learning algorithms achieved higher average final accuracy except GR on USC-HAD. 
-In the B-CIL1 scenario, continual learning algorithms outperformed Naive. 
-In the B-CIL2 scenario, continual learning algorithms outperformed Naive except for GR on USC-HAD, and SI on UCI-HAR and USC-HAD.
-Overall, in scenarios such as CIL and those with task overlap, many CL algorithms tend to outperform the Naive baseline. 
+% この段落、Baselineとの比較ということでOfflineについても触れてほしい
+\textcolor{red}{We compared the Final Average Accuracy $\mathcal{A}_{T}$ of CL methods against baselines (i.e., Naïve and Offline).}
+\textcolor{blue}{In the CIL scenario, most CL methods achieved higher accuracy than Naïve, except for GR on USC-HAD.
+In the B-CIL1 scenario, all CL methods outperformed Naïve.
+In the B-CIL2 scenario, CL methods generally surpassed Naïve, with the exception of GR on USC-HAD and SI on both UCI-HAR and USC-HAD.
+Overall, across CIL and scenarios with task overlap, most CL methods tend to outperform the Naive baseline.}
 
-% ４つのリプレイベースの手法（ER, DER, ASER, FastICARL)のFinal Average Accuracyの平均は，UCI-HARでは、CILで75.20、B-CIL1で91.615, B-CIL2で95.97であり、USC-HADでは、CILで77.15、B-CIL1で82.88、B-CIL2で84.76であった。
-Among the evaluated continual learning algorithms, most replay-based methods outperformed regularization-based methods in both datasets and across all scenario, except GR.
-Four replay-based methods (ER, DER, ASER, FastICARL) had an average Final Average Accuracy of 75.20 in CIL, 91.62 in B-CIL1, and 95.97 in B-CIL2 for UCI-HAR, and 77.15 in CIL, 82.88 in B-CIL1, and 84.76 in B-CIL2 for USC-HAD.
-In contrast, For regularization-based method (LwF, EWC, MAS, SI), the average Final Average Accuracy was 36.13 in CIL, 70.04 in B-CIL1, and 82.94 in B-CIL2 for UCI-HAR, and 37.05 in CIL, 55.40 in B-CIL1, and 61.37 in B-CIL2 for USC-HAD.
-Among the replay-based methods, ASER achieved the highest final average accuracy in the CIL, B-CIL1, and B-CIL2 scenarios for UCI-HAR and USC-HAD. 
+\textcolor{red}{Among the evaluated CL methods, most replay-based methods outperformed regularization-based methods across both datasets and all scenarios, with exception of GR.
+For the four replay-based methods (ER, DER, ASER, and FastICARL), the average Final Average Accuracy $\mathcal{A}_{T}$ was 75.20 in CIL, 91.62 in B-CIL1, and 95.97 in B-CIL2 for UCI-HAR, and 77.15 in CIL, 82.88 in B-CIL1, and 84.76 in B-CIL2 for USC-HAD.
+In contrast, for the regularization-based methods (LwF, EWC, MAS, and SI), the average Final Average Accuracy was 36.13 in CIL, 70.04 in B-CIL1, and 82.94 in B-CIL2 for UCI-HAR, and 37.05 in CIL, 55.40 in B-CIL1, and 61.37 in B-CIL2 for USC-HAD.
+Among the replay-based methods, ASER achieved the highest Final Average Accuracy across all scenarios for both UCI-HAR and USC-HAD.}
 
-When comparing UCI-HAR and USC-HAD, CIL scenarios show higher accuracy on USC-HAD for methods such as LwF, EWC, ER, and FastICARL. 
-In contrast, B-CIL1 and B-CIL2 scenarios consistently favor UCI-HAR. 
-This is due to the higher class-level overlap in UCI-HAR: B-CIL1 includes 1/6 classes (16.7\%) versus 1/12 (8.3\%) in USC-HAD, and B-CIL2 includes 2/6 (33.3\%) versus 2/12 (16.7\%). 
-Greater overlap reinforces previously learned representations, reducing catastrophic forgetting.
+% ここ少しDiscussionっぽい
+\textcolor{red}{When comparing UCI-HAR and USC-HAD, the CIL scenario yields higher accuracy on USC-HAD for methods such as LwF, EWC, ER, and FastICARL.
+In contrast, B-CIL1 and B-CIL2 scenarios consistently favor UCI-HAR.
+This difference is attributable to the greater class-level overlap in UCI-HAR: B-CIL1 includes 1 of 6~classes (16.7\%) compared to 1 of 12 (8.3\%) in USC-HAD, while B-CIL2 includes 2 of 6~classes (33.3\%) compared to 2 of 12 (16.7\%).
+Increased overlap reinforces previously learned representations, thereby reducing catastrophic forgetting.}
 
 
 \section{Discussion}
 \subsection{Answers to Research Questions}
 \subsubsection{RQ1: Which CL methods are most effective in B-CIL scenarios for IMU-based HAR?}
-In both UCI-HAR and USC-HAD datasets, replay-based methods generally outperformed regularization-based methods in B-CIL scenarios. 
-This finding aligns with previous research in CIL scenarios~\cite{qiao2024class}, which also reported the superiority of replay-based methods.d
-Among the replay-based method, ASER consistently achieved the highest final average accuracy across both datasets and all B-CIL scenarios.
+\textcolor{red}{Across both UCI-HAR and USC-HAD datasets, replay-based methods consistently outperformed regularization-based methods in B-CIL scenarios. 
+This observation is consistent with prior findings in CIL scenarios~\cite{qiao2024class}, which also reported the superiority of replay-based methods.
+Among the replay-based methods, ASER achieved the highest Final Average Accuracy across all B-CIL scenarios and both datasets.}
 
-\subsubsection{RQ2: How does the degree of class overlap affect the performance of CL methods in B-CIL scenarios?}
-Increasing the degree of class overlap in B-CIL scenarios positively impacted the performance of CL methods.
-As the number of overlapping classes increased from B-CIL1 to B-CIL2, there was a notable reduction in forgetting and an improvement in final average accuracy across most CL methods.
-In addition, the higher the proportion of overlapping classes relative to existing classes, the more pronounced the improvement in accuracy when classes overlap.
+\subsubsection{RQ2: How does the degree of class overlap influence the performance of CL methods in B-CIL scenarios?}
+\textcolor{red}{Increasing the degree of class overlap in B-CIL scenarios had a positive impact on the performance of CL methods.
+As the number of overlapping classes increased from B-CIL1 to B-CIL2, most methods exhibited a notable reduction in forgetting and an improvement in Final Average Accuracy.
+Furthermore, the improvement was more pronounced when the proportion of overlapping classes relative to the total number of classes was higher, reinforcing the benefit of overlap in mitigating catastrophic forgetting.}
 
 \subsection{Limitations and Future Work}
-\subsubsection{Expansion to other datasets and algorithms}
-In this study, we used the UCI-HAR and USC-HAD datasets to evaluate the performance of continual learning algorithms in B-CIL scenarios.
-A limitation of this study is that it considered only two datasets.
-In the future, we will extend this research to other human activity datasets to examine how the number and order of overlapping classes affect model accuracy.
+\subsubsection{Expansion to other datasets and methods}
+\textcolor{red}{This study evaluated the performance of CL methods in B-CIL scenarios using two publicly available datasets: UCI-HAR and USC-HAD.
+A key limitation is that the experiments were restricted to these two datasets.
+In future work, we plan to extend the evaluation to additional human activity datasets to investigate how factors such as the number and order of overlapping classes influence model accuracy.}
 
-To the best of our knowledge, no existing studies have applied a B-CIL scenario to time-series data.
-CIL has been explored not only for IMU data but also for other types of time-series data, such as electromyography (EMG) signals~\cite{kanoga2024deep}.
-In the future, we plan to extend the B-CIL setting to other types of time-series data.
+\textcolor{red}{To the best of our knowledge, no previous studies have applied the B-CIL scenarios to time-series data.
+While CIL has been explored for IMU data and other time-series modalities, such as surface electromyogram (sEMG) signals~\cite{kanoga2024deep}, the blurry setting remains unexplored.
+Future research will aim to generalize the B-CIL framework to other types of time-series data.}
 
-As a continual learning methods, we selected four regularization-based methods (LwF, EWC, MAS, SI) and five replay-based methods (ER, ASER, DER, FastICARL, GR).
-In our study, parameter isolated methods such as Progressive Neural Networks (PNN)~\cite{rusu2016progressive} were not considered. 
-We will include such parameter isolation methods in our future studies.
+\textcolor{red}{In this study, we focused on four regularization-based methods (LwF, EWC, MAS, and SI) and five replay-based methods (ER, ASER, DER, FastICARL, and GR).
+Parameter isolated methods, such as Progressive Neural Networks (PNN)~\cite{rusu2016progressive}, were not considered. 
+Incorporating such methods into future experiments will provide a more comprehensive comparison of CL strategies under B-CIL scenarios.}
 
 \subsubsection{More various blurry scenarios}
-In this study, we trained and updated the model using batch learning. In real-world applications, data often arrives in a streaming format.
-As a future work, it is necessary to evaluate the performance of online continual learning\cite{schiemer2023online}, where the model is updated as data arrives in a streaming manner, under Blurry CIL scenarios.
-% 本研究では，CILに関して，Blurryな問題設定を適応した．一方で，これらの問題設定では，クラスが増えていくClass ILだけではなく，ドメインが変化するDomain ILにおいてもBlurryな問題設定を適応することが可能である．今後の課題として，Domain ILにおけるBlurryな問題設定を適応し，その有効性を評価することが挙げられる．
+\textcolor{red}{In this study, the model was trained and updated using batch learning.
+However, in real-world applications, data often arrives in a streaming format.
+As future work, it is essential to evaluate the performance of online CL~\cite{schiemer2023online}, where the model is updated incrementally as data stream in, under B-CIL scenarios.}
 
-In this study, we applied the Blurry problem setting to Class Incremental Learning (CIL). In contrast, Blurry problem settings can also be applied to Domain Incremental Learning (Domain IL)\cite{matteoni2022continual,kann2024cross}, where the domain changes rather than the classes.
-As a future work, it is necessary to apply the Blurry problem setting to Domain IL and evaluate its effectiveness.
+\textcolor{red}{Furthermore, this study applied the Blurry problem setting exclusively to CIL.
+In contrast, Blurry settings can also be extended to Domain-Incremental Learning (Domain-IL)\cite{matteoni2022continual,kann2024cross}, where the domain changes rather than the classes.
+Future research will focus on adapting the Blurry problem setting to Domain-IL and assessing its effectiveness.}
 
 
 \section{Conclusion}

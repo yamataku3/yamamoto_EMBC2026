@@ -16,12 +16,12 @@
 \usepackage{color}
 \usepackage{textcomp}
 
-\iftrue
-% \iffalse
+% \iftrue
+\iffalse
   % Visualize
-  \newcommand{\RevFin}[1]{\color{red}{#1}}
+  \newcommand{\RevFin}[1]{\color{red}{#1}\color{black}\relax}
   \newcommand{\RevQ}[1]{\color{blue}{#1}}
-  \newcommand{\RevAgain}[1]{\color{cyan}{#1}}
+  \newcommand{\RevAgain}[1]{\color{cyan}{#1}\color{black}\relax}
 \else
   % Finalize
   \newcommand{\RevFin}[1]{#1}
@@ -298,7 +298,7 @@ Therefore, the number of classes per task was [2, 4, 4] for UCI-HAR and [4, 6, 6
 \RevFin{The order of classes within each task was determined randomly.
 The split into training, validation, and test sets was also performed randomly, with 60\% of the data used for training, 20\% for validation, and 20\% for testing.}
 
-\RevAgain{The assignment of classes to tasks and the data split into training, validation, and test sets may affect the results. Therefore, We performed five different random assignments of classes to tasks by varying the random seed. For each of these assignments, we also tested five different data splitting strategies for training, validation, and test sets.}
+\RevAgain{The assignment of classes to tasks and the data split into training, validation, and test sets may affect the results. Therefore, We performed five different random assignments of classes to tasks by varying the random seed. For each of these assignments, we also tested five different data splitting strategies for training, validation, and test sets. The final results are reported as the average of these trials.}
 \subsection{Evaluation Metrics}
 \RevFin{We employed three evaluation metrics: (1)~Final Average Accuracy, (2)~Final Average Forgetting, and (3)~Average Learning Accuracy.
 Let $a_{i, j}$ denote the average classification accuracy on Task~$j$ after the model has been trained on Task~$i$, where $j \leqq i$. The total number of tasks is $T$.}

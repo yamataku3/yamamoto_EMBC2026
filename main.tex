@@ -15,6 +15,24 @@
 \usepackage{multicol}
 \usepackage{color}
 \usepackage{textcomp}
+
+\iftrue
+% \iffalse
+  % Visualize
+  \newcommand{\Add}[1]{\color{blue}{#1}\color{black}\relax}
+  \newcommand{\Remove}[1]{\color{red}{\st{#1}}\color{black}\relax} % for English
+  % \newcommand{\Remove}[1]{\color{red}{\sout{#1}}\color{black}} % for Japanese
+  \newcommand{\ReviseFinish}[1]{\color{red}{\st{#1}}\color{black}\relax}
+  \newcommand{\ReviseQuestion}[2]{\color{blue}{\st{#1}}\color{black}\relax}
+\else
+  % Finalize
+  \newcommand{\Add}[1]{#1}
+  \newcommand{\Remove}[1]{}
+  \newcommand{\ReviseAdd}[1]{}
+  \newcommand{\ReviseReplace}[2]{#2}
+\fi
+
+
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
@@ -25,6 +43,7 @@
 \thanks{T.~Yamamoto and Y.~Sugiura are with Keio University, Kanagawa, Japan (E-mail: {\tt\footnotesize imuka06x17@keio.jp}).}%
 \thanks{T.~Yamamoto, S.~Kanoga, and M.~Tada are with the National Institute of Advanced Industrial Science and Technology (AIST), Tokyo, Japan.}%
 }
+
 
 \begin{document}
 \bstctlcite{IEEEexample:BSTcontrol}
@@ -239,7 +258,6 @@ This represents an upper-bound performance reference, as it assumes full access 
 % After updating the learner, the generator is also retrained to reflect the updated knowledge.
 % In this study, we adopt TimeVAE~\cite{desai2021timevae} as the generative model, which is well-suited for sequential and time-series data generation.
 
-
 \section{Materials}
 %
 \begin{figure*}[t]
@@ -281,6 +299,7 @@ Therefore, the number of classes per task was [2, 4, 4] for UCI-HAR and [4, 6, 6
 \textcolor{red}{The order of classes within each task was determined randomly.
 The split into training, validation, and test sets was also performed randomly, with 60\% of the data used for training, 20\% for validation, and 20\% for testing.}
 
+\textcolor{gray}{The assignment of classes to tasks and the data split into training, validation, and test sets may affect the results. Therefore, We performed five different random assignments of classes to tasks by varying the random seed. For each of these assignments, we also tested five different data splitting strategies for training, validation, and test sets.}
 \subsection{Evaluation Metrics}
 \textcolor{red}{We employed three evaluation metrics: (1)~Final Average Accuracy, (2)~Final Average Forgetting, and (3)~Average Learning Accuracy.
 Let $a_{i, j}$ denote the average classification accuracy on Task~$j$ after the model has been trained on Task~$i$, where $j \leqq i$. The total number of tasks is $T$.}
@@ -315,26 +334,26 @@ Let $a_{i, j}$ denote the average classification accuracy on Task~$j$ after the 
 The model was trained for 100~epochs.
 Early stopping was applied to the regularization-based methods and baseline method, with a patience parameter of 5.}
 
-\textcolor{red}{For all training methods, the batch size, maximum learning rate, and learning rate adjustment strategy were optimized using grid search.
-The search range for batch size was [32, 64, 128], and for the initial learning rate, it was [0.01, 0.001, 0.0001].
-For the learning rate adjustment strategy, three approaches were evaluated: (1)~reducing the learning rate by a factor of 0.1 every 10~epochs, (2)~reducing it by a factor of 0.1 every 25~epochs, and (3)~using only the scheduler without manual adjustments.}
 
-\textcolor{red}{Hyperparameter optimization was performed exclusively using validation data from Task~1.}
-\textcolor{blue}{The final hyperparameters employed in this study are summarized in Table~\ref{tab:hyperparameter}.}
+\textcolor{gray}{
+For all methods, hyperparameter tuning was performed using grid search. 
+The batch size, maximum learning rate, and learning rate adjustment strategy were optimized. 
+The search space for batch size was {32, 64, 128}, and for the initial learning rate, it was {0.01, 0.001, 0.0001}. 
+For the learning rate adjustment strategy, three approaches were evaluated: 
+(1)~reducing the learning rate by a factor of 0.1 every 10~epochs, 
+(2)~reducing it by a factor of 0.1 every 25~epochs, and 
+(3)~using only the scheduler without manual adjustments. 
+Details of the search space for each method are summarized in Table~\ref{tab:hyperparameter}. 
+Note that the optimal hyperparameter values depended on the class-to-task assignment and on the specific data splits used for training, validation, and testing.
+}
+% \textcolor{red}{Hyperparameter optimization was performed exclusively using validation data from Task~1.}
+% \textcolor{blue}{The final hyperparameters employed in this study are summarized in Table~\ref{tab:hyperparameter}.}
 % この部分要確認
 
-\subsection{Implementation}
-\textcolor{red}{All methods were implemented in Python 3.10.10 and PyTorch 1.13.1.
-Experiments were conducted on a machine running Ubuntu 22.04, equipped with four NVIDIA L40S GPUs.}
-% In the UCI-HAR dataset, out of the data from eight participants (excluding the test data for Task 1), data from two participants were selected using 4-fold cross-validation. 
-% In the USC-HAD dataset, out of the data from three participants (excluding the test data for Task 1), data from one participant were selected using 3-fold cross-validation.
 
-
-\section{Results}
-%
 \begin{table}[t]
     \centering
-    \caption{\textcolor{blue}{Hyperparameters employed in this study for CL methods.}}
+    \caption{\textcolor{gray}{Hyperparameter search space in this study for CL methods.}}
     \resizebox{0.95\linewidth}{!}{
     \begin{tabular}{c  c  c }
        \toprule
@@ -360,6 +379,16 @@ Experiments were conducted on a machine running Ubuntu 22.04, equipped with four
     \label{tab:hyperparameter}
 \end{table}
 %
+\subsection{Implementation}
+\textcolor{red}{All methods were implemented in Python 3.10.10 and PyTorch 1.13.1.
+Experiments were conducted on a machine running Ubuntu 22.04, equipped with four NVIDIA L40S GPUs.}
+% In the UCI-HAR dataset, out of the data from eight participants (excluding the test data for Task 1), data from two participants were selected using 4-fold cross-validation. 
+% In the USC-HAD dataset, out of the data from three participants (excluding the test data for Task 1), data from one participant were selected using 3-fold cross-validation.
+
+
+\section{Results}
+%
+
 \begin{table*}[!ht]
     \centering
     \caption{\textcolor{red}{Results of baseline and CL methods on UCI-HAR and USC-HAD datasets.}}
@@ -389,7 +418,7 @@ Experiments were conducted on a machine running Ubuntu 22.04, equipped with four
         \midrule
 
         % === A_cur ===
-        \multirow{6}{*}{$\mathcal{A}_{cur}$} & \multirow{3}{*}{UCI-HAR} & CIL   & 99.14 & N.A.& 96.75 & 98.98 & 97.27 & 93.65 & 81.37 & 76.74 & \textbf{99.58} & 85.54 & 97.55\\
+        \multirow{6}{*}{$\mathcal{A}_{\mathrm{cur}}$} & \multirow{3}{*}{UCI-HAR} & CIL   & 99.14 & N.A.& 96.75 & 98.98 & 97.27 & 93.65 & 81.37 & 76.74 & \textbf{99.58} & 85.54 & 97.55\\
                                              &                           & B-CIL1& 99.01 & N.A. & 96.46 & 98.84 & 97.10 & 94.06 & 93.31 & 92.03 & \textbf{99.69} & 95.03 & 98.44 \\
                                              &                           & B-CIL2& 98.40 & N.A. & 96.08 & 98.46 & 96.74 & 94.48 & 97.78 & 95.06 & \textbf{99.67} & 97.52 & 98.58 \\
         \cmidrule(lr){2-14}
@@ -451,10 +480,15 @@ Overall, these results indicate that increasing the number of overlapping classe
 
 % この段落、Baselineとの比較ということでOfflineについても触れてほしい
 \textcolor{red}{We compared the Final Average Accuracy $\mathcal{A}_{T}$ of CL methods against baselines (i.e., Naïve and Offline).}
-\textcolor{blue}{In the CIL scenario, most CL methods achieved higher accuracy than Naïve, except for GR on USC-HAD.
+\textcolor{red}{In the CIL scenario, most CL methods achieved higher accuracy than Naïve, except for GR on USC-HAD.
 In the B-CIL1 scenario, all CL methods outperformed Naïve.
 In the B-CIL2 scenario, CL methods generally surpassed Naïve, with the exception of GR on USC-HAD and SI on both UCI-HAR and USC-HAD.
 Overall, across CIL and scenarios with task overlap, most CL methods tend to outperform the Naive baseline.}
+\textcolor{gray}{
+Compared to the Offline baseline, most CL methods exhibited the lower accuracy across almost all scenarios, but surprisingly, ASER in B-CIL1 and B-CIL2 on UCI-HAR, and all scenarios on USC-HAD slightly outperformed Offline. 
+Offline training incorporates all data, including noisy or outlier samples, which can negatively affect the high accuracy. 
+In contrast, ASER selectively retain informative samples, potentially mitigating the impact of noise and enabling more effective learning from past data.
+}
 
 \textcolor{red}{Among the evaluated CL methods, most replay-based methods outperformed regularization-based methods across both datasets and all scenarios, with exception of GR.
 For the four replay-based methods (ER, DER, ASER, and FastICARL), the average Final Average Accuracy $\mathcal{A}_{T}$ was 75.20 in CIL, 91.62 in B-CIL1, and 95.97 in B-CIL2 for UCI-HAR, and 77.15 in CIL, 82.88 in B-CIL1, and 84.76 in B-CIL2 for USC-HAD.
@@ -466,7 +500,6 @@ Among the replay-based methods, ASER achieved the highest Final Average Accuracy
 In contrast, B-CIL1 and B-CIL2 scenarios consistently favor UCI-HAR.
 This difference is attributable to the greater class-level overlap in UCI-HAR: B-CIL1 includes 1 of 6~classes (16.7\%) compared to 1 of 12 (8.3\%) in USC-HAD, while B-CIL2 includes 2 of 6~classes (33.3\%) compared to 2 of 12 (16.7\%).
 Increased overlap reinforces previously learned representations, thereby reducing catastrophic forgetting.}
-
 
 \section{Discussion}
 \subsection{Answers to Research Questions}

@@ -8,6 +8,7 @@ Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: Reference.bib
+Warning--I didn't find a database entry for "IEEEexample:BSTcontrol"
 -- IEEEtran.bst version 1.12 (2007/01/11) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
@@ -15,7 +16,7 @@ Database file #1: Reference.bib
 Done.
 You've used 38 entries,
             4024 wiz_defined-function locations,
-            1024 strings with 15753 characters,
+            1026 strings with 15797 characters,
 and the built_in function-call counts, 31295 in all, are:
 = -- 2437
 > -- 949
@@ -55,3 +56,4 @@ while$ -- 130
 width$ -- 40
 write$ -- 386
 is.kanji.str$ -- 0
+(There was 1 warning)
